@@ -399,6 +399,10 @@ def main():
         })
 
     (args.out / "zones.json").write_text(json.dumps(index, indent=1), encoding="utf-8")
+    # Room names and descriptions for the viewer's room search.
+    room_catalog = [{"vnum": r["vnum"], "zone": zone_of_vnum[r["vnum"]], "name": r["name"], "desc": r["desc"]}
+                    for r in rooms if r["vnum"] in zone_of_vnum]
+    (args.out / "rooms.json").write_text(json.dumps(room_catalog, separators=(",", ":")), encoding="utf-8")
     write_catalog(args.out / "mobs.json", mob_protos, mob_loads)
     write_catalog(args.out / "objects.json", obj_protos, obj_loads)
     print(f"{len(rooms)} rooms in {len(index)} zones written to {args.out}"

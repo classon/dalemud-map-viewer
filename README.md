@@ -7,8 +7,9 @@ A browser-based 3D viewer for the rooms in [DaleMUD](https://github.com/sneezymu
 connected by links; a zone list picks the area and a details pane shows the
 selected room's description, exits and extras. Mobs appear on the rooms where
 they load at boot; clicking one shows its stats and the equipment it wears
-and carries. The Mobs and Items tabs in the left pane search every mob and
-object in the game as you type, and list everywhere each one loads.
+and carries. The Rooms, Mobs and Items tabs in the left pane search the whole
+game as you type: rooms by name or description, mobs and objects by name or
+keyword, with everywhere each mob and object loads.
 
 ## Layout
 
@@ -22,6 +23,7 @@ web/app.js               three.js scene, picking, zone list, details pane
 web/data/zones.json      zone index
 web/data/zones/*.json    one file per zone: rooms with grid positions, mob placements,
                          and the mob and object prototypes that zone needs
+web/data/rooms.json      every room's name and description (fetched by the Rooms tab)
 web/data/mobs.json       every mob prototype with its load locations (fetched by the Mobs tab)
 web/data/objects.json    every object prototype with its load locations (fetched by the Items tab)
 web/vendor/              three.js r160 + OrbitControls (vendored, works offline)

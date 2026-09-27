@@ -617,7 +617,9 @@ async function loadCatalog(name) {
         return res.json();
       })
       .then((list) => new Map(list.map((p) => {
-        p.search = `${p.name} ${p.keywords ?? ''} #${p.vnum}`.toLowerCase();
+        // Rooms are also found by their description; mobs and items by keywords.
+        const extra = name === 'rooms' ? p.desc.replace(/\s+/g, ' ') : p.keywords ?? '';
+        p.search = `${p.name} ${extra} #${p.vnum}`.toLowerCase();
         return [p.vnum, p];
       })));
   }
@@ -958,7 +960,26 @@ function readHash() {
 
 // ---------------------------------------------------------------- left pane: zones, mob and item search
 const SEARCH_LIMIT = 200;
-const PLACEHOLDERS = { zones: 'Filter zones…', mobs: 'Search mobs by name, keyword or #vnum…', items: 'Search items by name, keyword or #vnum…' };
+const PLACEHOLDERS = {
+  zones: 'Filter zones…', rooms: 'Search room names and descriptions…', mobs: 'Search mobs by name, keyword or #vnum…', items: 'Search items by name, keyword or #vnum…',
+};
+const CATALOG_FOR = { rooms: 'rooms', mobs: 'mobs', items: 'objects' };
+
+// A short excerpt of a room description around the first matched word.
+function snippet(desc, words) {
+  const text = desc.replace(/\s+/g, ' ').trim();
+  const lower = text.toLowerCase();
+  const at = Math.min(...words.map((w) => lower.indexOf(w)).filter((i) => i >= 0));
+  if (!Number.isFinite(at)) return '';
+  const start = Math.max(0, at - 30);
+  const end = Math.min(text.length, at + 70);
+  // Split the raw text on the search words, then escape each piece, so a
+  // match never lands inside an HTML entity.
+  const pattern = new RegExp(`(${words.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
+  const html = text.slice(start, end).split(pattern)
+    .map((part, i) => (i % 2 ? `<mark>${esc(part)}</mark>` : esc(part))).join('');
+  return `${start > 0 ? '…' : ''}${html}${end < text.length ? '…' : ''}`;
+}
 
 function setSide(side) {
   state.queries[state.side] = zoneFilter.value;
@@ -982,7 +1003,7 @@ document.querySelector('.side-tabs').addEventListener('click', (e) => {
 // with the query rank first, then other name matches, then keyword-only ones.
 async function runSearch() {
   const side = state.side;
-  const catalogName = side === 'mobs' ? 'mobs' : 'objects';
+  const catalogName = CATALOG_FOR[side];
   if (!state.catalogs[catalogName]) searchStatus.textContent = 'Loading…';
   const catalog = await loadCatalog(catalogName);
   if (state.side !== side) return;
@@ -993,11 +1014,18 @@ async function runSearch() {
     if (!words.every((w) => p.search.includes(w))) continue;
     const name = p.name.toLowerCase();
     const rank = !q ? 0 : name.startsWith(q) || name.replace(/^(an?|the|some) /, '').startsWith(q) ? 0 : words.every((w) => name.includes(w)) ? 1 : 2;
-    results.push([rank, p.loads.length ? 0 : 1, name.replace(/^(an?|the|some) /, ''), p]);
+    results.push([rank, (p.loads?.length ?? 1) ? 0 : 1, name.replace(/^(an?|the|some) /, ''), p]);
   }
   results.sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2].localeCompare(b[2]));
   const shown = results.slice(0, SEARCH_LIMIT);
-  searchList.innerHTML = shown.map(([, , , p]) => {
+  searchList.innerHTML = shown.map(([rank, , , p]) => {
+    if (side === 'rooms') {
+      const zoneName = state.zonesById.get(p.zone)?.name ?? `zone ${p.zone}`;
+      return `<li><button data-result="room" data-vnum="${p.vnum}" data-zone="${p.zone}" class="result">
+        <span class="result-main"><span class="result-name">${esc(p.name)}</span>
+        <span class="result-sub">#${p.vnum} · ${esc(zoneName)}</span>
+        ${rank === 2 ? `<span class="result-snippet">${snippet(p.desc, words)}</span>` : ''}</span></button></li>`;
+    }
     const kind = side === 'mobs' ? 'mob' : 'item';
     const sub = side === 'mobs' ? `L${p.level ?? '?'} · ${esc(p.race ?? '')}` : esc(p.type ?? '');
     const lead = side === 'mobs' ? `<span class="dot dot-${alignKind(p.alignment ?? 0)}"></span>` : '';
@@ -1014,13 +1042,19 @@ async function runSearch() {
 
 function highlightResult() {
   for (const b of searchList.querySelectorAll('button[data-result]')) {
-    b.classList.toggle('active', state.info?.kind === b.dataset.result && state.info.vnum === Number(b.dataset.vnum));
+    const vnum = Number(b.dataset.vnum);
+    const active = b.dataset.result === 'room'
+      ? !state.info && !state.selectedMob && state.selected?.vnum === vnum
+      : state.info?.kind === b.dataset.result && state.info.vnum === vnum;
+    b.classList.toggle('active', active);
   }
 }
 
 searchList.addEventListener('click', (e) => {
   const b = e.target.closest('button[data-result]');
-  if (b) showInfo(b.dataset.result, Number(b.dataset.vnum));
+  if (!b) return;
+  if (b.dataset.result === 'room') goTo(Number(b.dataset.zone), Number(b.dataset.vnum)).then(highlightResult, showError);
+  else showInfo(b.dataset.result, Number(b.dataset.vnum));
 });
 
 function renderZoneList() {
