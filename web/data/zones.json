@@ -1,10 +1,20 @@
 [
  {
+  "id": 0,
+  "name": "Scratch Zone For Static Game",
+  "bottom": 0,
+  "top": 0,
+  "roomCount": 1,
+  "mobCount": 0,
+  "file": "zones/0-scratch-zone-for-static-game.json"
+ },
+ {
   "id": 2,
   "name": "LIMBO",
-  "bottom": 0,
+  "bottom": 1,
   "top": 49,
-  "roomCount": 17,
+  "roomCount": 16,
+  "mobCount": 1,
   "file": "zones/2-limbo.json"
  },
  {
@@ -13,6 +23,7 @@
   "bottom": 50,
   "top": 199,
   "roomCount": 92,
+  "mobCount": 13,
   "file": "zones/3-temple-extensions.json"
  },
  {
@@ -21,6 +32,7 @@
   "bottom": 200,
   "top": 249,
   "roomCount": 50,
+  "mobCount": 42,
   "file": "zones/4-doom-island.json"
  },
  {
@@ -29,6 +41,7 @@
   "bottom": 250,
   "top": 305,
   "roomCount": 56,
+  "mobCount": 16,
   "file": "zones/5-cueball-s-area.json"
  },
  {
@@ -37,6 +50,7 @@
   "bottom": 306,
   "top": 499,
   "roomCount": 13,
+  "mobCount": 16,
   "file": "zones/6-the-ambush.json"
  },
  {
@@ -45,6 +59,7 @@
   "bottom": 500,
   "top": 510,
   "roomCount": 9,
+  "mobCount": 1,
   "file": "zones/7-the-colossal-tree.json"
  },
  {
@@ -53,6 +68,7 @@
   "bottom": 511,
   "top": 521,
   "roomCount": 6,
+  "mobCount": 1,
   "file": "zones/8-the-small-copse.json"
  },
  {
@@ -61,6 +77,7 @@
   "bottom": 522,
   "top": 799,
   "roomCount": 23,
+  "mobCount": 0,
   "file": "zones/9-the-chaos-guild-hall.json"
  },
  {
@@ -69,6 +86,7 @@
   "bottom": 800,
   "top": 1099,
   "roomCount": 20,
+  "mobCount": 0,
   "file": "zones/10-asgard.json"
  },
  {
@@ -77,6 +95,7 @@
   "bottom": 1100,
   "top": 1199,
   "roomCount": 77,
+  "mobCount": 108,
   "file": "zones/11-shire.json"
  },
  {
@@ -85,6 +104,7 @@
   "bottom": 1200,
   "top": 1499,
   "roomCount": 71,
+  "mobCount": 71,
   "file": "zones/1400-the-chessboard.json"
  },
  {
@@ -93,6 +113,7 @@
   "bottom": 1500,
   "top": 1699,
   "roomCount": 184,
+  "mobCount": 116,
   "file": "zones/16-the-high-tower-of-sorcerery.json"
  },
  {
@@ -101,6 +122,7 @@
   "bottom": 1700,
   "top": 1799,
   "roomCount": 50,
+  "mobCount": 40,
   "file": "zones/17-the-monk-monastary.json"
  },
  {
@@ -109,6 +131,7 @@
   "bottom": 1800,
   "top": 1899,
   "roomCount": 1,
+  "mobCount": 0,
   "file": "zones/22-aarcerak-s-area-notdone.json"
  },
  {
@@ -117,6 +140,7 @@
   "bottom": 1900,
   "top": 1943,
   "roomCount": 44,
+  "mobCount": 28,
   "file": "zones/23-celestian-s-jungle-s-of-chult.json"
  },
  {
@@ -125,6 +149,7 @@
   "bottom": 1944,
   "top": 1999,
   "roomCount": 48,
+  "mobCount": 27,
   "file": "zones/24-celestian-s-jungle-top-pyramid.json"
  },
  {
@@ -133,6 +158,7 @@
   "bottom": 2000,
   "top": 2099,
   "roomCount": 24,
+  "mobCount": 7,
   "file": "zones/25-celestian-s-lower-pyramid.json"
  },
  {
@@ -141,6 +167,7 @@
   "bottom": 2100,
   "top": 2299,
   "roomCount": 78,
+  "mobCount": 0,
   "file": "zones/26-bandit-s-temple-check-empty.json"
  },
  {
@@ -149,6 +176,7 @@
   "bottom": 2300,
   "top": 2700,
   "roomCount": 401,
+  "mobCount": 144,
   "file": "zones/27-stic-s-area.json"
  },
  {
@@ -157,6 +185,7 @@
   "bottom": 2701,
   "top": 2820,
   "roomCount": 26,
+  "mobCount": 29,
   "file": "zones/28-celestian-s-astral-zone.json"
  },
  {
@@ -165,6 +194,7 @@
   "bottom": 2821,
   "top": 3099,
   "roomCount": 64,
+  "mobCount": 49,
   "file": "zones/30-northern-midgaard-main-city.json"
  },
  {
@@ -173,6 +203,7 @@
   "bottom": 3100,
   "top": 3199,
   "roomCount": 62,
+  "mobCount": 19,
   "file": "zones/31-southern-part-of-midgaard.json"
  },
  {
@@ -181,6 +212,7 @@
   "bottom": 3200,
   "top": 3299,
   "roomCount": 6,
+  "mobCount": 0,
   "file": "zones/32-river-of-midgaard-empty.json"
  },
  {
@@ -189,6 +221,7 @@
   "bottom": 3300,
   "top": 3399,
   "roomCount": 1,
+  "mobCount": 0,
   "file": "zones/33-buildings-in-midgaard-empty.json"
  },
  {
@@ -197,6 +230,7 @@
   "bottom": 3400,
   "top": 3499,
   "roomCount": 95,
+  "mobCount": 52,
   "file": "zones/34-ator-s-area.json"
  },
  {
@@ -205,6 +239,7 @@
   "bottom": 3500,
   "top": 3899,
   "roomCount": 127,
+  "mobCount": 261,
   "file": "zones/37-felix-s-arena-and-houses.json"
  },
  {
@@ -213,6 +248,7 @@
   "bottom": 4000,
   "top": 4099,
   "roomCount": 50,
+  "mobCount": 105,
   "file": "zones/40-moria-level-1-2.json"
  },
  {
@@ -221,6 +257,7 @@
   "bottom": 4100,
   "top": 4199,
   "roomCount": 26,
+  "mobCount": 47,
   "file": "zones/41-moria-level-3-4.json"
  },
  {
@@ -229,6 +266,7 @@
   "bottom": 4200,
   "top": 4999,
   "roomCount": 278,
+  "mobCount": 0,
   "file": "zones/42-moria-extentions-scream-s-notdone.json"
  },
  {
@@ -237,6 +275,7 @@
   "bottom": 5000,
   "top": 5099,
   "roomCount": 72,
+  "mobCount": 28,
   "file": "zones/50-the-great-eastern-desert.json"
  },
  {
@@ -245,6 +284,7 @@
   "bottom": 5100,
   "top": 5199,
   "roomCount": 54,
+  "mobCount": 80,
   "file": "zones/51-drow-city.json"
  },
  {
@@ -253,6 +293,7 @@
   "bottom": 5200,
   "top": 5299,
   "roomCount": 52,
+  "mobCount": 36,
   "file": "zones/52-the-city-of-thalos.json"
  },
  {
@@ -261,6 +302,7 @@
   "bottom": 5300,
   "top": 5399,
   "roomCount": 51,
+  "mobCount": 50,
   "file": "zones/53-great-pyramid.json"
  },
  {
@@ -269,6 +311,7 @@
   "bottom": 5400,
   "top": 6099,
   "roomCount": 29,
+  "mobCount": 9,
   "file": "zones/60-haon-dor-light.json"
  },
  {
@@ -277,6 +320,7 @@
   "bottom": 6100,
   "top": 6199,
   "roomCount": 47,
+  "mobCount": 18,
   "file": "zones/61-haon-dor-dark.json"
  },
  {
@@ -285,6 +329,7 @@
   "bottom": 6200,
   "top": 6221,
   "roomCount": 20,
+  "mobCount": 20,
   "file": "zones/62-quickland.json"
  },
  {
@@ -293,6 +338,7 @@
   "bottom": 6222,
   "top": 6499,
   "roomCount": 148,
+  "mobCount": 61,
   "file": "zones/63-alun-s-area.json"
  },
  {
@@ -301,6 +347,7 @@
   "bottom": 6500,
   "top": 6599,
   "roomCount": 50,
+  "mobCount": 54,
   "file": "zones/65-the-dwarven-kingdom.json"
  },
  {
@@ -309,6 +356,7 @@
   "bottom": 6600,
   "top": 6700,
   "roomCount": 101,
+  "mobCount": 50,
   "file": "zones/66-prydain.json"
  },
  {
@@ -317,6 +365,7 @@
   "bottom": 6701,
   "top": 6899,
   "roomCount": 80,
+  "mobCount": 23,
   "file": "zones/68-arctica.json"
  },
  {
@@ -325,6 +374,7 @@
   "bottom": 6900,
   "top": 6999,
   "roomCount": 100,
+  "mobCount": 0,
   "file": "zones/69-newbie-immort-area.json"
  },
  {
@@ -333,6 +383,7 @@
   "bottom": 7000,
   "top": 7099,
   "roomCount": 62,
+  "mobCount": 12,
   "file": "zones/70-sewer.json"
  },
  {
@@ -341,6 +392,7 @@
   "bottom": 7100,
   "top": 7199,
   "roomCount": 27,
+  "mobCount": 10,
   "file": "zones/71-secondsewer.json"
  },
  {
@@ -349,6 +401,7 @@
   "bottom": 7200,
   "top": 7399,
   "roomCount": 42,
+  "mobCount": 23,
   "file": "zones/72-sewermaze.json"
  },
  {
@@ -357,6 +410,7 @@
   "bottom": 7400,
   "top": 7499,
   "roomCount": 46,
+  "mobCount": 8,
   "file": "zones/74-the-tunnels.json"
  },
  {
@@ -365,6 +419,7 @@
   "bottom": 7500,
   "top": 7699,
   "roomCount": 3,
+  "mobCount": 0,
   "file": "zones/75-dalamar-s-moonshae-nd.json"
  },
  {
@@ -373,6 +428,7 @@
   "bottom": 7700,
   "top": 7999,
   "roomCount": 20,
+  "mobCount": 1,
   "file": "zones/79-redferne-s-res-rework-this.json"
  },
  {
@@ -381,6 +437,7 @@
   "bottom": 8000,
   "top": 8999,
   "roomCount": 3,
+  "mobCount": 6,
   "file": "zones/80-zodiac-s-zone.json"
  },
  {
@@ -389,6 +446,7 @@
   "bottom": 9000,
   "top": 9199,
   "roomCount": 19,
+  "mobCount": 0,
   "file": "zones/81-valley-trail-sarge-s-area.json"
  },
  {
@@ -397,6 +455,7 @@
   "bottom": 9200,
   "top": 9400,
   "roomCount": 156,
+  "mobCount": 177,
   "file": "zones/82-hill-giant-smial.json"
  },
  {
@@ -405,6 +464,7 @@
   "bottom": 9401,
   "top": 9480,
   "roomCount": 78,
+  "mobCount": 94,
   "file": "zones/94-frost-giant-rift.json"
  },
  {
@@ -413,6 +473,7 @@
   "bottom": 9481,
   "top": 9600,
   "roomCount": 69,
+  "mobCount": 138,
   "file": "zones/95-frost-giant-rift-level-2.json"
  },
  {
@@ -421,6 +482,7 @@
   "bottom": 9601,
   "top": 9699,
   "roomCount": 63,
+  "mobCount": 63,
   "file": "zones/100-celestian-s-spider-haunt.json"
  },
  {
@@ -429,6 +491,7 @@
   "bottom": 9700,
   "top": 10899,
   "roomCount": 248,
+  "mobCount": 37,
   "file": "zones/105-celestian-s-menzoberanzan.json"
  },
  {
@@ -437,6 +500,7 @@
   "bottom": 10900,
   "top": 10999,
   "roomCount": 25,
+  "mobCount": 25,
   "file": "zones/109-the-temple-maze.json"
  },
  {
@@ -445,6 +509,7 @@
   "bottom": 11000,
   "top": 11299,
   "roomCount": 64,
+  "mobCount": 52,
   "file": "zones/110-main-castle-python.json"
  },
  {
@@ -453,6 +518,7 @@
   "bottom": 11300,
   "top": 12999,
   "roomCount": 55,
+  "mobCount": 95,
   "file": "zones/120-wert-s-area-notdone.json"
  },
  {
@@ -461,6 +527,7 @@
   "bottom": 13000,
   "top": 13699,
   "roomCount": 300,
+  "mobCount": 188,
   "file": "zones/130-new-thalos.json"
  },
  {
@@ -469,6 +536,7 @@
   "bottom": 13700,
   "top": 13713,
   "roomCount": 12,
+  "mobCount": 21,
   "file": "zones/131-graecia.json"
  },
  {
@@ -477,6 +545,7 @@
   "bottom": 13714,
   "top": 13727,
   "roomCount": 14,
+  "mobCount": 15,
   "file": "zones/132-labors-of-hercules.json"
  },
  {
@@ -485,6 +554,7 @@
   "bottom": 13728,
   "top": 13754,
   "roomCount": 27,
+  "mobCount": 14,
   "file": "zones/133-maze-small-check.json"
  },
  {
@@ -493,6 +563,7 @@
   "bottom": 13755,
   "top": 13779,
   "roomCount": 25,
+  "mobCount": 28,
   "file": "zones/137-hades.json"
  },
  {
@@ -501,6 +572,7 @@
   "bottom": 13780,
   "top": 13798,
   "roomCount": 71,
+  "mobCount": 43,
   "file": "zones/138-mount-olympus.json"
  },
  {
@@ -509,6 +581,7 @@
   "bottom": 13799,
   "top": 13850,
   "roomCount": 71,
+  "mobCount": 43,
   "file": "zones/138-graecian-quest.json"
  },
  {
@@ -517,6 +590,7 @@
   "bottom": 13851,
   "top": 13999,
   "roomCount": 49,
+  "mobCount": 1,
   "file": "zones/139-forest-of-rhowyn-small-check.json"
  },
  {
@@ -525,6 +599,7 @@
   "bottom": 14000,
   "top": 14999,
   "roomCount": 176,
+  "mobCount": 0,
   "file": "zones/140-naril-s-zone.json"
  },
  {
@@ -533,6 +608,7 @@
   "bottom": 15000,
   "top": 15100,
   "roomCount": 106,
+  "mobCount": 131,
   "file": "zones/151-southern-lands-small-check.json"
  },
  {
@@ -541,6 +617,7 @@
   "bottom": 15101,
   "top": 15900,
   "roomCount": 106,
+  "mobCount": 131,
   "file": "zones/151-skexie-palace.json"
  },
  {
@@ -549,6 +626,7 @@
   "bottom": 15901,
   "top": 16099,
   "roomCount": 162,
+  "mobCount": 250,
   "file": "zones/160-eastern-mountains.json"
  },
  {
@@ -557,6 +635,7 @@
   "bottom": 16100,
   "top": 16199,
   "roomCount": 52,
+  "mobCount": 46,
   "file": "zones/164-gypsy-village.json"
  },
  {
@@ -565,6 +644,7 @@
   "bottom": 16200,
   "top": 16299,
   "roomCount": 100,
+  "mobCount": 62,
   "file": "zones/162-undercaves-1.json"
  },
  {
@@ -573,6 +653,7 @@
   "bottom": 16300,
   "top": 16645,
   "roomCount": 44,
+  "mobCount": 61,
   "file": "zones/166-the-heour.json"
  },
  {
@@ -581,6 +662,7 @@
   "bottom": 16646,
   "top": 16999,
   "roomCount": 44,
+  "mobCount": 35,
   "file": "zones/169-lythcity.json"
  },
  {
@@ -589,6 +671,7 @@
   "bottom": 17000,
   "top": 17200,
   "roomCount": 79,
+  "mobCount": 23,
   "file": "zones/170-white-plume-mountain.json"
  },
  {
@@ -597,6 +680,7 @@
   "bottom": 17201,
   "top": 17999,
   "roomCount": 207,
+  "mobCount": 0,
   "file": "zones/175-euphrate-s-not-done.json"
  },
  {
@@ -605,6 +689,7 @@
   "bottom": 18000,
   "top": 18999,
   "roomCount": 112,
+  "mobCount": 91,
   "file": "zones/180-darkenelf-s-area.json"
  },
  {
@@ -613,6 +698,7 @@
   "bottom": 19000,
   "top": 19199,
   "roomCount": 105,
+  "mobCount": 38,
   "file": "zones/190-alien-s-torture-keep.json"
  },
  {
@@ -621,6 +707,7 @@
   "bottom": 19200,
   "top": 19999,
   "roomCount": 54,
+  "mobCount": 35,
   "file": "zones/192-castle-mistamere.json"
  },
  {
@@ -629,6 +716,7 @@
   "bottom": 20000,
   "top": 20099,
   "roomCount": 52,
+  "mobCount": 32,
   "file": "zones/200-arachnos.json"
  },
  {
@@ -637,6 +725,7 @@
   "bottom": 20100,
   "top": 21100,
   "roomCount": 63,
+  "mobCount": 44,
   "file": "zones/210-ershteep-road-and-city.json"
  },
  {
@@ -645,6 +734,7 @@
   "bottom": 21101,
   "top": 21199,
   "roomCount": 99,
+  "mobCount": 56,
   "file": "zones/211-mage-valley-entrance.json"
  },
  {
@@ -653,6 +743,7 @@
   "bottom": 21200,
   "top": 21268,
   "roomCount": 69,
+  "mobCount": 77,
   "file": "zones/212-troglodyte-caves.json"
  },
  {
@@ -661,6 +752,7 @@
   "bottom": 21269,
   "top": 21350,
   "roomCount": 67,
+  "mobCount": 134,
   "file": "zones/216-abandoned-rhyodin-outpost.json"
  },
  {
@@ -669,6 +761,7 @@
   "bottom": 21351,
   "top": 21901,
   "roomCount": 88,
+  "mobCount": 25,
   "file": "zones/218-sauria.json"
  },
  {
@@ -677,6 +770,7 @@
   "bottom": 21902,
   "top": 22699,
   "roomCount": 102,
+  "mobCount": 100,
   "file": "zones/219-the-elven-forest.json"
  },
  {
@@ -685,6 +779,7 @@
   "bottom": 23100,
   "top": 23999,
   "roomCount": 54,
+  "mobCount": 0,
   "file": "zones/231-krell-s-area-not-done.json"
  },
  {
@@ -693,6 +788,7 @@
   "bottom": 24000,
   "top": 24699,
   "roomCount": 113,
+  "mobCount": 61,
   "file": "zones/240-blackmouth-s-area.json"
  },
  {
@@ -701,6 +797,7 @@
   "bottom": 24700,
   "top": 24790,
   "roomCount": 31,
+  "mobCount": 33,
   "file": "zones/247-deadhame-upper.json"
  },
  {
@@ -709,6 +806,7 @@
   "bottom": 24791,
   "top": 24799,
   "roomCount": 9,
+  "mobCount": 9,
   "file": "zones/24791-deadhame-nether.json"
  },
  {
@@ -717,6 +815,7 @@
   "bottom": 24800,
   "top": 24999,
   "roomCount": 11,
+  "mobCount": 0,
   "file": "zones/249-goblin-marshes-nd.json"
  },
  {
@@ -725,6 +824,7 @@
   "bottom": 25000,
   "top": 25100,
   "roomCount": 89,
+  "mobCount": 42,
   "file": "zones/250-the-abyss.json"
  },
  {
@@ -733,6 +833,7 @@
   "bottom": 25101,
   "top": 25999,
   "roomCount": 51,
+  "mobCount": 28,
   "file": "zones/255-sinistrad-s-area.json"
  },
  {
@@ -741,6 +842,7 @@
   "bottom": 27000,
   "top": 27199,
   "roomCount": 140,
+  "mobCount": 148,
   "file": "zones/270-tyr-s-zone.json"
  },
  {
@@ -749,6 +851,7 @@
   "bottom": 27200,
   "top": 27999,
   "roomCount": 100,
+  "mobCount": 117,
   "file": "zones/272-the-land-down-under.json"
  },
  {
@@ -757,6 +860,7 @@
   "bottom": 28000,
   "top": 29999,
   "roomCount": 90,
+  "mobCount": 0,
   "file": "zones/290-empty-area.json"
  },
  {
@@ -765,6 +869,7 @@
   "bottom": 30000,
   "top": 31799,
   "roomCount": 203,
+  "mobCount": 71,
   "file": "zones/300-celestian-s-ravenloft-area.json"
  },
  {
@@ -773,6 +878,7 @@
   "bottom": 37101,
   "top": 37300,
   "roomCount": 200,
+  "mobCount": 0,
   "file": "zones/353-mason-s-troll-moors-nd.json"
  }
 ]

@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
-"""Convert DaleMUD world files (tinyworld.wld + tinyworld.zon) into JSON.
+"""Convert DaleMUD world files (tinyworld.wld/.zon/.mob/.obj) into JSON.
 
 Writes one JSON file per zone plus an index, so the viewer never has to
 touch the 2.5 MB world file. Each room gets a precomputed 3D grid position.
+The zone reset tables are replayed once to find where each mob loads and
+what it wears and carries; each zone file includes the mob and object
+prototypes it needs. Full catalogs go to mobs.json and objects.json.
 
 Usage:
     python tools/convert_world.py <path/to/lib> [--out web/data]
 
 The parsing mirrors load_one_room(), setup_dir() and boot_zones() in the
 original src/db.c, which read the files as a stream of '~'-terminated strings
-and whitespace-separated integers.
+and whitespace-separated integers. Mobs, objects and resets are handled in
+dale_entities.py.
 """
 
 import argparse
@@ -18,6 +22,12 @@ import re
 import sys
 from collections import deque
 from pathlib import Path
+
+from dale_entities import (
+    collect_objects, load_saved_zone_commands, parse_commands, parse_mobs, parse_objects,
+    replay_resets, write_catalog,
+)
+from dale_reader import Reader
 
 DIR_NAMES = ["north", "east", "south", "west", "up", "down"]
 OPPOSITE = [2, 3, 0, 1, 5, 4]
@@ -52,86 +62,38 @@ def flag_names(value, table):
     return [name for bit, name in table if value & bit]
 
 
-class Reader:
-    """Stream reader that mimics fread_string() and fscanf(" %ld ")."""
-
-    _ws = re.compile(r"\s*")
-    _token = re.compile(r"\S+")
-
-    def __init__(self, text):
-        self.text = text
-        self.pos = 0
-
-    def skip_ws(self):
-        self.pos = self._ws.match(self.text, self.pos).end()
-
-    def at_end(self):
-        self.skip_ws()
-        return self.pos >= len(self.text)
-
-    def peek_token(self):
-        self.skip_ws()
-        m = self._token.match(self.text, self.pos)
-        return m.group(0) if m else None
-
-    def token(self):
-        self.skip_ws()
-        m = self._token.match(self.text, self.pos)
-        if not m:
-            raise EOFError("unexpected end of file")
-        self.pos = m.end()
-        return m.group(0)
-
-    def int(self):
-        tok = self.token()
-        try:
-            return int(tok)
-        except ValueError:
-            raise ValueError(f"expected integer, got {tok!r} near offset {self.pos}")
-
-    def optional_int(self):
-        """Like fscanf("%ld"): on a non-number, consume nothing and return None."""
-        tok = self.peek_token()
-        if tok is None or not re.fullmatch(r"-?\d+", tok):
-            return None
-        return self.int()
-
-    def string(self):
-        """Read up to the next '~' and discard the rest of that line."""
-        end = self.text.find("~", self.pos)
-        if end < 0:
-            raise EOFError("unterminated string")
-        value = self.text[self.pos:end]
-        nl = self.text.find("\n", end)
-        self.pos = len(self.text) if nl < 0 else nl + 1
-        return value.replace("\r", "").rstrip()
-
-
 def parse_zones(text):
     r = Reader(text)
     zones = []
     bottom = 0
     while not r.at_end():
-        tok = r.token()
-        if not tok.startswith("#"):
-            continue
-        num = int(tok[1:])
+        # boot_zones() reads " #%d" and then the name even when the number is
+        # missing: the file's first zone ("Scratch Zone") has no header but
+        # still takes index 0, which lib/zones/<index>.zon files rely on.
+        num = 0
+        tok = r.peek_token()
+        if tok.startswith("#"):
+            r.token()
+            num = int(tok[1:])
         name = r.string().strip()
         if name.startswith("$"):
             break
         top = r.int()
         lifespan = r.int()
         reset_mode = r.int()
-        # Skip the reset command table; it ends with a line holding just 'S'.
+        # The reset command table ends with a line holding just 'S'.
+        lines = []
         while True:
             line_end = text.find("\n", r.pos)
-            line = text[r.pos:line_end if line_end >= 0 else len(text)].strip()
+            line = text[r.pos:line_end if line_end >= 0 else len(text)]
             r.pos = len(text) if line_end < 0 else line_end + 1
-            if line == "S" or line_end < 0:
+            lines.append(line)
+            if line.strip() == "S" or line_end < 0:
                 break
         zones.append({
             "id": num, "name": name, "bottom": bottom, "top": top,
             "lifespan": lifespan, "resetMode": reset_mode,
+            "commands": parse_commands(lines),
         })
         bottom = top + 1
     return zones
@@ -295,13 +257,17 @@ def slugify(name):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("lib", type=Path, help="DaleMUD lib directory containing tinyworld.wld/.zon")
+    ap.add_argument("lib", type=Path, help="DaleMUD lib directory containing the tinyworld.* files")
     ap.add_argument("--out", type=Path, default=Path(__file__).resolve().parent.parent / "web" / "data")
     args = ap.parse_args()
 
     zones = parse_zones((args.lib / "tinyworld.zon").read_text(encoding="latin-1"))
+    saved_zones = load_saved_zone_commands(args.lib / "zones", zones)
     rooms = parse_rooms((args.lib / "tinyworld.wld").read_text(encoding="latin-1"))
     all_vnums = {r["vnum"] for r in rooms}
+    mob_protos = parse_mobs((args.lib / "tinyworld.mob").read_text(encoding="latin-1"))
+    obj_protos = parse_objects((args.lib / "tinyworld.obj").read_text(encoding="latin-1"), args.lib / "objects")
+    spawns, room_items, reset_stats = replay_resets(zones, mob_protos, obj_protos, all_vnums.__contains__)
 
     zone_rooms = {z["id"]: [] for z in zones}
     orphans = 0
@@ -314,10 +280,27 @@ def main():
 
     zone_of_vnum = {r["vnum"]: zone_for(r["vnum"], zones)["id"] for rs in zone_rooms.values() for r in rs}
 
+    zone_spawns = {z["id"]: [] for z in zones}
+    for spawn in spawns:
+        zone_spawns[zone_of_vnum[spawn["room"]]].append(spawn)
+
     out_zones = args.out / "zones"
     out_zones.mkdir(parents=True, exist_ok=True)
     for old in out_zones.glob("*.json"):
         old.unlink()
+
+    # Where each prototype loads, for the viewer's global search.
+    mob_loads, obj_loads = {}, {}
+
+    room_names = {r["vnum"]: r["name"] for r in rooms}
+
+    def note_objects(instances, zone_id, room, holder, how):
+        for inst in instances:
+            where = {"zone": zone_id, "room": room, "roomName": room_names[room], "how": inst.get("slot", how)}
+            if holder is not None:
+                where["mob"], where["holder"] = holder["id"], mob_protos[holder["mob"]]["name"]
+            obj_loads.setdefault(inst["obj"], []).append(where)
+            note_objects(inst.get("contents", []), zone_id, room, holder, f"in {obj_protos[inst['obj']]['name']}")
 
     index = []
     for z in zones:
@@ -336,17 +319,55 @@ def main():
                 t = room["teleport"]["target"]
                 if t in zone_of_vnum and zone_of_vnum[t] != z["id"]:
                     room["teleport"]["toZone"] = zone_of_vnum[t]
+            if room["vnum"] in room_items:
+                room["items"] = room_items[room["vnum"]]
+
+        # Mob instances get ids local to the zone file; followers point at theirs.
+        zspawns = zone_spawns[z["id"]]
+        ids = {id(s): i for i, s in enumerate(zspawns)}
+        mobs_out = []
+        for i, s in enumerate(zspawns):
+            m = {"id": i, "mob": s["mob"], "room": s["room"], "equipment": s["equipment"], "inventory": s["inventory"]}
+            if "follows" in s and id(s["follows"]) in ids:
+                m["follows"] = ids[id(s["follows"])]
+            mobs_out.append(m)
+            mob_loads.setdefault(s["mob"], []).append(
+                {"zone": z["id"], "room": s["room"], "roomName": room_names[s["room"]], "mob": i})
+            note_objects(s["equipment"], z["id"], s["room"], m, "worn")
+            note_objects(s["inventory"], z["id"], s["room"], m, "carried")
+        for room in zrooms:
+            note_objects(room.get("items", []), z["id"], room["vnum"], None, "on the floor")
+        used_objs = set()
+        for s in zspawns:
+            collect_objects(s["equipment"], used_objs)
+            collect_objects(s["inventory"], used_objs)
+        for room in zrooms:
+            collect_objects(room.get("items", []), used_objs)
+
         filename = f"{z['id']}-{slugify(z['name'])}.json"
-        data = dict(z, rooms=zrooms)
+        zone_meta = {k: v for k, v in z.items() if k != "commands"}
+        data = dict(
+            zone_meta, rooms=zrooms, mobs=mobs_out,
+            mobProtos={v: mob_protos[v] for v in sorted({s["mob"] for s in zspawns})},
+            objProtos={v: obj_protos[v] for v in sorted(used_objs)},
+        )
         (out_zones / filename).write_text(json.dumps(data, separators=(",", ":")), encoding="utf-8")
         index.append({
             "id": z["id"], "name": z["name"], "bottom": z["bottom"], "top": z["top"],
-            "roomCount": len(zrooms), "file": f"zones/{filename}",
+            "roomCount": len(zrooms), "mobCount": len(zspawns), "file": f"zones/{filename}",
         })
 
     (args.out / "zones.json").write_text(json.dumps(index, indent=1), encoding="utf-8")
+    write_catalog(args.out / "mobs.json", mob_protos, mob_loads)
+    write_catalog(args.out / "objects.json", obj_protos, obj_loads)
     print(f"{len(rooms)} rooms in {len(index)} zones written to {args.out}"
           + (f" ({orphans} rooms outside any zone skipped)" if orphans else ""))
+    print(f"{len(mob_protos)} mob and {len(obj_protos)} object prototypes; "
+          f"{len(spawns)} mobs and {sum(len(v) for v in room_items.values())} floor items placed by resets"
+          f" ({saved_zones} zones use saved command tables from lib/zones)")
+    if reset_stats["eqConflicts"] or reset_stats["missingProtos"]:
+        print(f"reset notes: {reset_stats['eqConflicts']} equipment slot conflicts, "
+              f"{reset_stats['missingProtos']} commands naming missing prototypes", file=sys.stderr)
 
 
 if __name__ == "__main__":

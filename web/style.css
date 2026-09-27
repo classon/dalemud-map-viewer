@@ -13,6 +13,9 @@
   --external: #4cc38a;
   --door: #d8b36a;
   --secret: #ef5b5b;
+  --mob-good: #5aa9ff;
+  --mob-neutral: #f2d05a;
+  --mob-evil: #ff5f6d;
   --grid-major: #39404c;
   --grid-minor: #242933;
   --title-shadow: 0 1px 3px #000;
@@ -35,6 +38,9 @@
   --external: #1f9d63;
   --door: #a8802f;
   --secret: #d63a3a;
+  --mob-good: #1f6fd6;
+  --mob-neutral: #c79a00;
+  --mob-evil: #d8283b;
   --grid-major: #b9c1cd;
   --grid-minor: #d9dee6;
   --title-shadow: 0 1px 2px #fff;
@@ -47,7 +53,7 @@ body { background: var(--bg); color: var(--text); font: 14px/1.45 var(--font); }
 
 .app {
   display: grid;
-  grid-template-columns: 240px minmax(0, 1fr) 360px;
+  grid-template-columns: 270px minmax(0, 1fr) 380px;
   height: 100vh;
 }
 
@@ -142,6 +148,60 @@ body { background: var(--bg); color: var(--text); font: 14px/1.45 var(--font); }
 .link:hover { text-decoration: underline; }
 details.extra { margin-bottom: 6px; }
 details.extra summary { cursor: pointer; }
+
+/* Left pane tabs and search results */
+.side-tabs { margin: 0 0 10px; }
+.side-tabs button { flex: 1; }
+.search-list { padding-bottom: 0; }
+.search-list .result { align-items: center; justify-content: flex-start; }
+.result-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.result-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.result-sub { font-size: 11px; color: var(--muted); }
+.result.unloaded .result-name { color: var(--muted); }
+.search-status { padding: 8px 14px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); }
+.load-zone { font-weight: 600; margin: 12px 0 4px; display: flex; gap: 6px; align-items: baseline; }
+.load-zone:first-child { margin-top: 4px; }
+.load-zone .count { color: var(--muted); font-weight: 400; }
+ul.loads { gap: 6px; padding-left: 10px; border-left: 2px solid var(--border); }
+.link.small, .small-note { font-size: 12px; }
+.item-body.flat { padding: 4px 0 0; }
+.room-details h2 .dot { width: 12px; height: 12px; vertical-align: 2px; }
+
+/* Mobs and items */
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.dot-good { background: var(--mob-good); }
+.dot-neutral { background: var(--mob-neutral); }
+.dot-evil { background: var(--mob-evil); }
+.legend .dot + .dot { margin-left: -3px; }
+.mob-link { display: inline-flex; align-items: center; gap: 6px; }
+ul.plain { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.back { font-size: 12px; margin-bottom: 8px; }
+.warn-text { color: var(--secret); font-size: 12px; }
+
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); margin: 14px 0 4px; }
+.tabs button {
+  background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  padding: 6px 10px; color: var(--muted); font: inherit; font-weight: 600; cursor: pointer;
+}
+.tabs button:hover { color: var(--text); }
+.tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
+.tabs .count { font-weight: 400; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+table.kv { border-collapse: collapse; width: 100%; font-size: 13px; }
+table.kv th { text-align: left; font-weight: 500; color: var(--muted); padding: 2px 12px 2px 0; width: 38%; vertical-align: top; }
+table.kv td { padding: 2px 0; }
+
+.items { display: flex; flex-direction: column; gap: 4px; }
+details.item { background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; }
+details.item > summary { cursor: pointer; padding: 6px 9px; display: flex; gap: 8px; align-items: baseline; }
+details.item > summary::marker { color: var(--muted); }
+details.item[open] > summary { border-bottom: 1px solid var(--border); }
+.item-slot { color: var(--muted); font-size: 12px; min-width: 76px; text-transform: capitalize; }
+.item-name { flex: 1; }
+.item-body { padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
+.item-body p { margin: 0; }
+.item-body .items { margin-top: 2px; }
+.item-sub { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
 
 @media (max-width: 900px) {
   .app { grid-template-columns: 1fr; grid-template-rows: 180px 55vh auto; height: auto; }

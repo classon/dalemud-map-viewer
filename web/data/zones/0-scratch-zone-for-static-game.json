@@ -1,0 +1,1 @@
+{"id":0,"name":"Scratch Zone For Static Game","bottom":0,"top":0,"lifespan":0,"resetMode":0,"rooms":[{"vnum":0,"name":"The Void","desc":"  You don't think that you are not floating in nothing.","flags":["indoors"],"sector":"city","exits":[{"dir":4,"to":98,"desc":"Temple","toZone":3}],"extras":[],"pos":[0,0,0]}],"mobs":[],"mobProtos":{},"objProtos":{}}

@@ -18,7 +18,10 @@ const SECTOR_COLORS = {
 
 // Scene colors come from the CSS variables so they follow the light/dark theme.
 const cssVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(`--${name}`).trim();
-const COLOR_KEYS = ['twoway', 'oneway', 'warp', 'teleport', 'external', 'door', 'secret', 'accent', 'bg', 'grid-major', 'grid-minor'];
+const COLOR_KEYS = [
+  'twoway', 'oneway', 'warp', 'teleport', 'external', 'door', 'secret', 'accent', 'bg', 'grid-major', 'grid-minor',
+  'mob-good', 'mob-neutral', 'mob-evil',
+];
 const COLORS = {};
 function readColors() {
   for (const n of COLOR_KEYS) COLORS[n] = new THREE.Color(cssVar(n));
@@ -38,6 +41,8 @@ const viewport = $('#viewport');
 const tooltip = $('#tooltip');
 const zoneList = $('#zone-list');
 const zoneFilter = $('#zone-filter');
+const searchList = $('#search-list');
+const searchStatus = $('#search-status');
 const details = $('#room-details');
 const mapTitle = $('#map-title');
 
@@ -49,7 +54,15 @@ const state = {
   zone: null,
   rooms: new Map(),       // vnum -> room (current zone)
   roomMeshes: new Map(),  // vnum -> mesh
+  mobMeshes: new Map(),   // spawn id -> mesh
   selected: null,
+  selectedMob: null,      // spawn from zone.mobs
+  mobTab: 'stats',
+  info: null,             // { kind: 'mob' | 'item', vnum } prototype shown from search
+  infoTab: 'stats',
+  catalogs: {},           // 'mobs' | 'objects' -> Map(vnum -> prototype), loaded on demand
+  side: 'zones',          // left pane tab
+  queries: { zones: '', mobs: '', items: '' },
 };
 
 // ---------------------------------------------------------------- three.js setup
@@ -75,6 +88,7 @@ scene.add(world);
 const layers = {
   twoway: new THREE.Group(), oneway: new THREE.Group(), warp: new THREE.Group(),
   teleport: new THREE.Group(), external: new THREE.Group(), doors: new THREE.Group(),
+  mobs: new THREE.Group(),
 };
 
 // Shared resources are reused across zones and never disposed.
@@ -89,12 +103,31 @@ function sectorMaterial(sector) {
   return sectorMaterials.get(sector);
 }
 
+// Mobs are colored by alignment (the game's IS_GOOD/IS_EVIL cut-offs) and
+// aggressive ones get a spiky shape.
+const alignKind = (a) => (a >= 350 ? 'good' : a <= -350 ? 'evil' : 'neutral');
+const MOB_SIZE = 0.13;
+const mobGeometry = new THREE.SphereGeometry(MOB_SIZE, 14, 10);
+const aggroGeometry = new THREE.OctahedronGeometry(MOB_SIZE * 1.45);
+const mobMaterials = Object.fromEntries(['good', 'neutral', 'evil'].map((k) => [
+  k, themed(new THREE.MeshStandardMaterial({ roughness: 0.4, emissiveIntensity: 0.35 }), `mob-${k}`),
+]));
+const sharedMaterials = new Set([...Object.values(mobMaterials)]);
+const sharedGeometries = new Set([mobGeometry, aggroGeometry]);
+
 const selectionBox = new THREE.LineSegments(
   new THREE.EdgesGeometry(new THREE.BoxGeometry(CUBE * 1.35, CUBE * 1.35, CUBE * 1.35)),
   themed(new THREE.LineBasicMaterial(), 'accent'),
 );
 selectionBox.visible = false;
 scene.add(selectionBox);
+
+const mobSelection = new THREE.LineSegments(
+  new THREE.EdgesGeometry(new THREE.BoxGeometry(MOB_SIZE * 3.2, MOB_SIZE * 3.2, MOB_SIZE * 3.2)),
+  themed(new THREE.LineBasicMaterial(), 'accent'),
+);
+mobSelection.visible = false;
+scene.add(mobSelection);
 
 function resize() {
   const { clientWidth: w, clientHeight: h } = viewport;
@@ -157,8 +190,10 @@ function warpCurve(from, to, d) {
 
 function disposeGroup(group) {
   group.traverse((obj) => {
-    if (obj.geometry && obj.geometry !== cubeGeometry) obj.geometry.dispose();
-    if (obj.material && ![...sectorMaterials.values()].includes(obj.material)) obj.material.dispose();
+    if (obj.geometry && obj.geometry !== cubeGeometry && !sharedGeometries.has(obj.geometry)) obj.geometry.dispose();
+    if (obj.material && ![...sectorMaterials.values()].includes(obj.material) && !sharedMaterials.has(obj.material)) {
+      obj.material.dispose();
+    }
   });
   group.clear();
 }
@@ -172,6 +207,7 @@ function buildZone(zone) {
   pickables.length = 0;
   state.rooms = new Map(zone.rooms.map((r) => [r.vnum, r]));
   state.roomMeshes.clear();
+  state.mobMeshes.clear();
 
   for (const room of zone.rooms) {
     const mesh = new THREE.Mesh(cubeGeometry, sectorMaterial(room.sector));
@@ -227,6 +263,7 @@ function buildZone(zone) {
 
   const box = new THREE.Box3().setFromObject(world);
   buildGrid(box);
+  addMobs(zone);
 
   for (const layer of Object.values(layers)) world.add(layer);
   applyLayerVisibility();
@@ -251,6 +288,30 @@ function buildGrid(box = gridBox) {
   const center = box.getCenter(new THREE.Vector3());
   grid.position.set(center.x, box.min.y - 0.4, center.z);
   world.add(grid);
+}
+
+// Mob markers sit on top of their room cube, three to a row, stacking upward
+// when a room is crowded.
+function addMobs(zone) {
+  const perRoom = new Map();
+  for (const spawn of zone.mobs) {
+    const room = state.rooms.get(spawn.room);
+    if (!room) continue;
+    const k = perRoom.get(spawn.room) ?? 0;
+    perRoom.set(spawn.room, k + 1);
+    const proto = zone.mobProtos[spawn.mob];
+    const aggressive = proto.flags?.includes('aggressive');
+    const mesh = new THREE.Mesh(aggressive ? aggroGeometry : mobGeometry, mobMaterials[alignKind(proto.alignment ?? 0)]);
+    const step = MOB_SIZE * 2.4;
+    const col = k % 3, row = Math.floor(k / 3) % 3, layer = Math.floor(k / 9);
+    mesh.position.copy(toWorld(room.pos)).add(new THREE.Vector3(
+      (col - 1) * step, CUBE / 2 + MOB_SIZE * 1.3 + layer * step, (row - 1) * step,
+    ));
+    mesh.userData = { mobId: spawn.id };
+    layers.mobs.add(mesh);
+    pickables.push(mesh);
+    state.mobMeshes.set(spawn.id, mesh);
+  }
 }
 
 function addDoor(room, exit) {
@@ -312,6 +373,7 @@ function applyTheme(theme) {
     const key = obj.material?.userData.colorKey;
     if (key) obj.material.color.copy(COLORS[key]);
   });
+  for (const m of Object.values(mobMaterials)) m.emissive.copy(m.color);
   buildGrid();
 }
 
@@ -340,8 +402,10 @@ renderer.domElement.addEventListener('pointerup', (e) => {
   if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 5) return;
   const obj = pick(e);
   if (!obj) return;
-  const { vnum, external, zone, missing } = obj.userData;
-  if (external) {
+  const { vnum, external, zone, missing, mobId } = obj.userData;
+  if (mobId != null) {
+    selectMob(mobId);
+  } else if (external) {
     if (!missing && zone != null) goTo(zone, vnum);
   } else {
     selectRoom(vnum);
@@ -355,9 +419,12 @@ renderer.domElement.addEventListener('pointermove', (e) => {
   const obj = pick(e);
   renderer.domElement.style.cursor = obj ? 'pointer' : '';
   if (!obj) { tooltip.hidden = true; return; }
-  const { vnum, external, zone, missing } = obj.userData;
+  const { vnum, external, zone, missing, mobId } = obj.userData;
   let text;
-  if (!external) text = `${state.rooms.get(vnum).name}  #${vnum}`;
+  if (mobId != null) {
+    const proto = mobProto(state.zone.mobs[mobId]);
+    text = `${proto.name}  · level ${proto.level ?? '?'}`;
+  } else if (!external) text = `${state.rooms.get(vnum).name}  #${vnum}`;
   else if (missing) text = `Exit to #${vnum} (room does not exist)`;
   else text = `→ #${vnum} in ${state.zonesById.get(zone)?.name ?? `zone ${zone}`}`;
   tooltip.textContent = text;
@@ -391,6 +458,206 @@ function roomLabel(vnum, zoneId) {
   const other = state.zoneCache.get(zoneId)?.rooms.find((r) => r.vnum === vnum);
   const zoneName = state.zonesById.get(zoneId)?.name ?? `zone ${zoneId}`;
   return `${other ? esc(other.name) + ' ' : ''}<span class="muted">#${vnum} · ${esc(zoneName)}</span>`;
+}
+
+const mobProto = (spawn) => state.zone.mobProtos[spawn.mob];
+const objProto = (vnum) => state.zone?.objProtos[vnum] ?? state.catalogs.objects?.get(vnum)
+  ?? { vnum, name: `object #${vnum}`, malformed: 'not in object file' };
+const malformedNote = (p) => (p.malformed
+  ? `<p class="warn-text">This entry is malformed in the world file (${esc(p.malformed)}); only part of it could be read.</p>` : '');
+const chipList = (items, warn = []) => items.map((f) => `<span class="chip${warn.includes(f) ? ' warn' : ''}">${esc(f)}</span>`).join('');
+const titleCase = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+
+function mobButton(spawn) {
+  const proto = mobProto(spawn);
+  const kind = alignKind(proto.alignment ?? 0);
+  return `<button class="link mob-link" data-mob="${spawn.id}"><span class="dot dot-${kind}"></span>${esc(titleCase(proto.name))}</button>
+    <span class="muted">L${proto.level ?? '?'}</span>`;
+}
+
+// An object's details; inst adds the contents a container loads with.
+function itemBody(o, inst = null, { whereLink = true } = {}) {
+  const rows = [['type', o.type], ...(o.stats ?? [])];
+  if (o.wear?.length) rows.push(['worn', o.wear.join(', ')]);
+  if (o.weight != null) rows.push(['weight', o.weight], ['value', `${o.cost} coins`], ['rent', `${o.rent} / day`]);
+  const affects = (o.affects ?? []).map(([k, v]) => `<tr><th>${esc(k)}</th><td>${esc(v)}</td></tr>`).join('');
+  const contents = inst?.contents?.length
+    ? `<div class="item-sub">Contains</div><div class="items">${inst.contents.map((c) => itemHtml(c)).join('')}</div>` : '';
+  const extras = (o.extras ?? []).map((x) => `<details class="extra"><summary>${esc(x.keywords)}</summary>${prose(x.desc)}</details>`).join('');
+  return `${malformedNote(o)}
+    ${o.long ? `<p class="muted">${esc(o.long)}</p>` : ''}
+    <table class="kv">${rows.map(([k, v]) => `<tr><th>${esc(k)}</th><td>${esc(v)}</td></tr>`).join('')}</table>
+    ${affects ? `<div class="item-sub">Affects</div><table class="kv">${affects}</table>` : ''}
+    ${o.extra?.length ? `<div class="chips">${chipList(o.extra, ['magic', 'artifact'])}</div>` : ''}
+    ${extras}
+    ${contents}
+    ${whereLink ? `<button class="link small" data-info="item" data-vnum="${o.vnum}">Everywhere this item loads →</button>` : ''}`;
+}
+
+// An object instance as an expandable card; containers nest their contents.
+function itemHtml(inst, label = '') {
+  const o = objProto(inst.obj);
+  return `<details class="item">
+    <summary>${label ? `<span class="item-slot">${esc(label)}</span>` : ''}<span class="item-name">${esc(o.name)}</span>
+      <span class="muted">#${o.vnum}</span></summary>
+    <div class="item-body">${itemBody(o, inst)}</div>
+  </details>`;
+}
+
+function mobStatsHtml(p) {
+  const stat = (k, v) => (v == null || v === '' ? '' : `<tr><th>${k}</th><td>${v}</td></tr>`);
+  const listRow = (k, arr) => (arr?.length ? stat(k, esc(arr.join(', '))) : '');
+  return `
+    <table class="kv">
+      ${stat('Level', p.level)}
+      ${stat('Class', esc(p.classes?.length ? p.classes.join(', ') : 'none'))}
+      ${stat('Race', esc(p.race))}
+      ${stat('Sex', esc(p.sex))}
+      ${stat('Alignment', `${p.alignment} <span class="muted">(${alignKind(p.alignment ?? 0)})</span>`)}
+      ${stat('Hit points', p.hp && `${esc(p.hp.text)} <span class="muted">≈ ${p.hp.avg}</span>`)}
+      ${stat('Damage', p.damage && `${esc(p.damage.text)} <span class="muted">≈ ${p.damage.avg}</span>`)}
+      ${stat('Attacks', p.attacks)}
+      ${stat('Armor class', p.ac)}
+      ${stat('THAC0', p.thac0)}
+      ${stat('Gold', p.gold)}
+      ${stat('Experience', p.exp ?? (p.format ? '<span class="muted">computed at load</span>' : null))}
+      ${stat('Position', p.position && esc(p.position === p.defaultPosition ? p.position : `${p.position} (default ${p.defaultPosition})`))}
+      ${listRow('Resists', p.resist)}
+      ${listRow('Immune', p.immune)}
+      ${listRow('Susceptible', p.susceptible)}
+      ${listRow('Affected by', p.affects)}
+    </table>
+    ${p.flags?.length ? `<h3>Behaviour</h3><div class="chips">${chipList(p.flags, ['aggressive', 'meta aggressive', 'deadly'])}</div>` : ''}`;
+}
+
+function mobDescHtml(p) {
+  return `<h3>Description</h3>
+    ${p.long ? `<p class="muted">${esc(p.long)}</p>` : ''}
+    ${prose(p.desc ?? '')}
+    ${p.sounds ? `<h3>Sounds</h3>${p.sounds.near ? prose(p.sounds.near) : ''}${p.sounds.far ? `<p class="muted">From afar: ${esc(p.sounds.far)}</p>` : ''}` : ''}`;
+}
+
+function renderMob(spawn) {
+  const p = mobProto(spawn);
+  const room = state.rooms.get(spawn.room);
+  const leader = spawn.follows != null ? state.zone.mobs[spawn.follows] : null;
+  const followers = state.zone.mobs.filter((m) => m.follows === spawn.id);
+  const eqCount = spawn.equipment.length + spawn.inventory.length;
+  const tab = state.mobTab;
+
+  const stats = `${mobStatsHtml(p)}
+    ${leader ? `<h3>Follows</h3><p>${mobButton(leader)}</p>` : ''}
+    ${followers.length ? `<h3>Followers</h3><ul class="plain">${followers.map((f) => `<li>${mobButton(f)}</li>`).join('')}</ul>` : ''}
+    ${mobDescHtml(p)}
+    <p><button class="link small" data-info="mob" data-vnum="${p.vnum}">Everywhere this mob loads →</button></p>`;
+
+  const worn = [...spawn.equipment].sort((a, b) => a.pos - b.pos);
+  const equipment = `
+    <h3>Worn</h3>
+    ${worn.length ? `<div class="items">${worn.map((e) => itemHtml(e, e.slot)).join('')}</div>` : '<p class="muted">Nothing</p>'}
+    <h3>Carried</h3>
+    ${spawn.inventory.length ? `<div class="items">${spawn.inventory.map((i) => itemHtml(i)).join('')}</div>` : '<p class="muted">Nothing</p>'}`;
+
+  details.innerHTML = `
+    <button class="link back" data-vnum="${spawn.room}" data-zone="">← ${esc(room?.name ?? `room #${spawn.room}`)}</button>
+    <h2>${esc(titleCase(p.name))}</h2>
+    <div class="meta">mob #${p.vnum} · ${esc(p.keywords ?? '')}</div>
+    ${malformedNote(p)}
+    <div class="tabs" role="tablist">
+      <button role="tab" data-tab="stats" aria-selected="${tab === 'stats'}">Stats</button>
+      <button role="tab" data-tab="equipment" aria-selected="${tab === 'equipment'}">Equipment <span class="count">${eqCount}</span></button>
+    </div>
+    <div class="tab-panel">${tab === 'stats' ? stats : equipment}</div>`;
+}
+
+// ---------------------------------------------------------------- prototype views (from search)
+async function loadCatalog(name) {
+  if (!state.catalogs[name]) {
+    state.catalogs[name] = fetch(`data/${name}.json`)
+      .then((res) => {
+        if (!res.ok) throw new Error(`Failed to load ${name}.json: ${res.status}`);
+        return res.json();
+      })
+      .then((list) => new Map(list.map((p) => {
+        p.search = `${p.name} ${p.keywords ?? ''} #${p.vnum}`.toLowerCase();
+        return [p.vnum, p];
+      })));
+  }
+  return state.catalogs[name];
+}
+
+// Load locations grouped by zone; each one jumps to that spot on the map.
+function loadsHtml(loads, kind) {
+  if (!loads.length) {
+    return `<p class="muted">No zone reset loads this ${kind === 'mob' ? 'mob' : 'item'} at boot. It may only appear
+      through a shop, a special procedure, or not at all.</p>`;
+  }
+  const byZone = new Map();
+  for (const l of loads) {
+    if (!byZone.has(l.zone)) byZone.set(l.zone, []);
+    byZone.get(l.zone).push(l);
+  }
+  return [...byZone].map(([zoneId, rows]) => `
+    <div class="load-zone">${esc(state.zonesById.get(zoneId)?.name ?? `zone ${zoneId}`)} <span class="count">${rows.length}</span></div>
+    <ul class="plain loads">${rows.map((l) => `<li>
+      <button class="link" data-load-zone="${l.zone}" data-load-room="${l.room}" data-load-mob="${l.mob ?? ''}"
+        data-load-tab="${kind === 'item' && l.mob != null ? 'equipment' : 'stats'}">${esc(l.roomName)} <span class="muted">#${l.room}</span></button>
+      ${kind === 'item' ? `<div class="exit-note">${esc(l.holder ? `${l.how} · ${l.holder}` : l.how)}</div>` : ''}
+    </li>`).join('')}</ul>`).join('');
+}
+
+function infoTabs(tabs) {
+  return `<div class="tabs" role="tablist">${tabs.map(([key, label]) => `
+    <button role="tab" data-info-tab="${key}" aria-selected="${state.infoTab === key}">${label}</button>`).join('')}</div>`;
+}
+
+const backButton = () => `<button class="link back" data-close-info>← Back to ${
+  state.selectedMob ? esc(mobProto(state.selectedMob).name) : esc(state.selected?.name ?? 'map')}</button>`;
+
+async function renderInfo() {
+  const { kind, vnum } = state.info;
+  const catalog = await loadCatalog(kind === 'mob' ? 'mobs' : 'objects');
+  if (state.info?.kind !== kind || state.info.vnum !== vnum) return; // superseded while loading
+  const p = catalog.get(vnum);
+  if (!p) {
+    details.innerHTML = `${backButton()}<p class="muted">No ${kind} #${vnum}.</p>`;
+    return;
+  }
+  const loadsTab = `Loads <span class="count">${p.loads.length}</span>`;
+  if (kind === 'mob') {
+    const tab = state.infoTab === 'loads' ? 'loads' : 'stats';
+    details.innerHTML = `${backButton()}
+      <h2><span class="dot dot-${alignKind(p.alignment ?? 0)}"></span> ${esc(titleCase(p.name))}</h2>
+      <div class="meta">mob #${p.vnum} · ${esc(p.keywords ?? '')}</div>
+      ${malformedNote(p)}
+      ${infoTabs([['stats', 'Stats'], ['loads', loadsTab]])}
+      <div class="tab-panel">${tab === 'stats' ? mobStatsHtml(p) + mobDescHtml(p)
+        : `<p class="muted small-note">Equipment is set per load; open one to see what it wears.</p>${loadsHtml(p.loads, 'mob')}`}</div>`;
+  } else {
+    const tab = state.infoTab === 'loads' ? 'loads' : 'stats';
+    details.innerHTML = `${backButton()}
+      <h2>${esc(titleCase(p.name))}</h2>
+      <div class="meta">item #${p.vnum} · ${esc(p.keywords ?? '')}</div>
+      ${infoTabs([['stats', 'Details'], ['loads', loadsTab]])}
+      <div class="tab-panel">${tab === 'stats' ? `<div class="item-body flat">${itemBody(p, null, { whereLink: false })}</div>`
+        : loadsHtml(p.loads, 'item')}</div>`;
+  }
+}
+
+function showInfo(kind, vnum, tab = 'stats') {
+  state.info = { kind, vnum };
+  state.infoTab = tab;
+  highlightResult();
+  renderInfo().catch(showError);
+  writeHash();
+}
+
+function closeInfo() {
+  state.info = null;
+  highlightResult();
+  if (state.selectedMob) renderMob(state.selectedMob);
+  else renderDetails(state.selected);
+  writeHash();
 }
 
 function renderDetails(room) {
@@ -446,6 +713,8 @@ function renderDetails(room) {
       ${t.flags.length ? `<span class="muted">(${esc(t.flags.join(', '))})</span>` : ''}</p>`;
   }
   const extras = room.extras.map((x) => `<details class="extra"><summary>${esc(x.keywords)}</summary>${prose(x.desc)}</details>`);
+  const mobsHere = state.zone.mobs.filter((m) => m.room === room.vnum);
+  const itemsHere = room.items ?? [];
 
   details.innerHTML = `
     <h2>${esc(room.name)}</h2>
@@ -453,6 +722,8 @@ function renderDetails(room) {
     ${flagChips.length ? `<div class="chips">${flagChips.join('')}</div>` : ''}
     <h3>Description</h3>
     ${prose(room.desc)}
+    ${mobsHere.length ? `<h3>Mobs here</h3><ul class="plain">${mobsHere.map((m) => `<li>${mobButton(m)}</li>`).join('')}</ul>` : ''}
+    ${itemsHere.length ? `<h3>Items here</h3><div class="items">${itemsHere.map((i) => itemHtml(i)).join('')}</div>` : ''}
     <h3>Exits</h3>
     ${exitItems.length ? `<ul class="exits">${exitItems.join('')}</ul>` : '<p class="muted">None</p>'}
     ${incoming.length ? `<h3>One-way entrances</h3><ul class="exits">${incoming.join('')}</ul>` : ''}
@@ -462,6 +733,40 @@ function renderDetails(room) {
 }
 
 details.addEventListener('click', (e) => {
+  const infoBtn = e.target.closest('button[data-info]');
+  if (infoBtn) {
+    showInfo(infoBtn.dataset.info, Number(infoBtn.dataset.vnum), 'loads');
+    return;
+  }
+  const infoTab = e.target.closest('button[data-info-tab]');
+  if (infoTab) {
+    state.infoTab = infoTab.dataset.infoTab;
+    renderInfo().catch(showError);
+    return;
+  }
+  if (e.target.closest('button[data-close-info]')) {
+    closeInfo();
+    return;
+  }
+  const loadBtn = e.target.closest('button[data-load-zone]');
+  if (loadBtn) {
+    const { loadZone: z, loadRoom: r, loadMob: m, loadTab: tab } = loadBtn.dataset;
+    state.info = null;
+    highlightResult();
+    goTo(Number(z), Number(r), m === '' ? null : Number(m), tab).catch(showError);
+    return;
+  }
+  const tabBtn = e.target.closest('button[data-tab]');
+  if (tabBtn) {
+    state.mobTab = tabBtn.dataset.tab;
+    renderMob(state.selectedMob);
+    return;
+  }
+  const mobBtn = e.target.closest('button[data-mob]');
+  if (mobBtn) {
+    selectMob(Number(mobBtn.dataset.mob));
+    return;
+  }
   const btn = e.target.closest('button.link');
   if (!btn) return;
   const vnum = Number(btn.dataset.vnum);
@@ -476,13 +781,37 @@ details.addEventListener('click', (e) => {
 });
 
 // ---------------------------------------------------------------- selection & navigation
-function selectRoom(vnum) {
-  const room = state.rooms.get(vnum) ?? null;
+function highlightRoom(room) {
   state.selected = room;
-  const mesh = room && state.roomMeshes.get(vnum);
+  const mesh = room && state.roomMeshes.get(room.vnum);
   selectionBox.visible = Boolean(mesh);
   if (mesh) selectionBox.position.copy(mesh.position);
+}
+
+function selectRoom(vnum) {
+  const room = state.rooms.get(vnum) ?? null;
+  state.info = null;
+  highlightResult();
+  highlightRoom(room);
+  state.selectedMob = null;
+  mobSelection.visible = false;
   renderDetails(room);
+  writeHash();
+}
+
+function selectMob(id, tab = null) {
+  const spawn = state.zone.mobs[id];
+  if (!spawn) return;
+  state.info = null;
+  highlightResult();
+  if (tab) state.mobTab = tab;
+  else if (state.selectedMob !== spawn) state.mobTab = 'stats';
+  state.selectedMob = spawn;
+  highlightRoom(state.rooms.get(spawn.room) ?? null);
+  const mesh = state.mobMeshes.get(id);
+  mobSelection.visible = Boolean(mesh);
+  if (mesh) mobSelection.position.copy(mesh.position);
+  renderMob(spawn);
   writeHash();
 }
 
@@ -496,7 +825,7 @@ async function loadZone(id) {
   return state.zoneCache.get(id);
 }
 
-async function goTo(zoneId, vnum) {
+async function goTo(zoneId, vnum, mobId = null, mobTab = null) {
   if (!state.zonesById.has(zoneId)) zoneId = state.index[0].id;
   if (state.zone?.id !== zoneId) {
     const zone = await loadZone(zoneId);
@@ -507,6 +836,12 @@ async function goTo(zoneId, vnum) {
       btn.classList.toggle('active', Number(btn.dataset.zone) === zoneId);
     }
   }
+  if (mobId != null && state.zone.mobs[mobId]) {
+    selectMob(mobId, mobTab);
+    const mesh = state.mobMeshes.get(mobId);
+    if (mesh) controls.target.copy(mesh.position);
+    return;
+  }
   const start = state.rooms.has(vnum) ? vnum : state.zone.rooms[0]?.vnum;
   selectRoom(start);
   const mesh = state.roomMeshes.get(start);
@@ -514,7 +849,9 @@ async function goTo(zoneId, vnum) {
 }
 
 function writeHash() {
-  const hash = `#zone=${state.zone?.id ?? ''}${state.selected ? `&room=${state.selected.vnum}` : ''}`;
+  const hash = `#zone=${state.zone?.id ?? ''}${state.selected ? `&room=${state.selected.vnum}` : ''}`
+    + (state.selectedMob ? `&mob=${state.selectedMob.id}` : '')
+    + (state.info ? `&${state.info.kind === 'mob' ? 'mobinfo' : 'item'}=${state.info.vnum}` : '');
   if (location.hash !== hash) history.replaceState(null, '', hash);
 }
 
@@ -522,10 +859,80 @@ function readHash() {
   const params = new URLSearchParams(location.hash.slice(1));
   const zone = params.has('zone') ? Number(params.get('zone')) : null;
   const room = params.has('room') ? Number(params.get('room')) : null;
-  return { zone, room };
+  const mob = params.has('mob') ? Number(params.get('mob')) : null;
+  let info = null;
+  if (params.has('mobinfo')) info = { kind: 'mob', vnum: Number(params.get('mobinfo')) };
+  if (params.has('item')) info = { kind: 'item', vnum: Number(params.get('item')) };
+  return { zone, room, mob, info };
 }
 
-// ---------------------------------------------------------------- zone list
+// ---------------------------------------------------------------- left pane: zones, mob and item search
+const SEARCH_LIMIT = 200;
+const PLACEHOLDERS = { zones: 'Filter zones…', mobs: 'Search mobs by name, keyword or #vnum…', items: 'Search items by name, keyword or #vnum…' };
+
+function setSide(side) {
+  state.queries[state.side] = zoneFilter.value;
+  state.side = side;
+  zoneFilter.value = state.queries[side];
+  zoneFilter.placeholder = PLACEHOLDERS[side];
+  for (const b of document.querySelectorAll('[data-side]')) b.setAttribute('aria-selected', String(b.dataset.side === side));
+  zoneList.hidden = side !== 'zones';
+  searchList.hidden = side === 'zones';
+  searchStatus.hidden = side === 'zones';
+  if (side === 'zones') renderZoneList();
+  else runSearch();
+  zoneFilter.focus();
+}
+document.querySelector('.side-tabs').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-side]');
+  if (b && b.dataset.side !== state.side) setSide(b.dataset.side);
+});
+
+// Every word must appear in the name, keywords or "#vnum". Names that start
+// with the query rank first, then other name matches, then keyword-only ones.
+async function runSearch() {
+  const side = state.side;
+  const catalogName = side === 'mobs' ? 'mobs' : 'objects';
+  if (!state.catalogs[catalogName]) searchStatus.textContent = 'Loading…';
+  const catalog = await loadCatalog(catalogName);
+  if (state.side !== side) return;
+  const q = zoneFilter.value.trim().toLowerCase();
+  const words = q.split(/\s+/).filter(Boolean);
+  const results = [];
+  for (const p of catalog.values()) {
+    if (!words.every((w) => p.search.includes(w))) continue;
+    const name = p.name.toLowerCase();
+    const rank = !q ? 0 : name.startsWith(q) || name.replace(/^(an?|the|some) /, '').startsWith(q) ? 0 : words.every((w) => name.includes(w)) ? 1 : 2;
+    results.push([rank, p.loads.length ? 0 : 1, name.replace(/^(an?|the|some) /, ''), p]);
+  }
+  results.sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2].localeCompare(b[2]));
+  const shown = results.slice(0, SEARCH_LIMIT);
+  searchList.innerHTML = shown.map(([, , , p]) => {
+    const kind = side === 'mobs' ? 'mob' : 'item';
+    const sub = side === 'mobs' ? `L${p.level ?? '?'} · ${esc(p.race ?? '')}` : esc(p.type ?? '');
+    const lead = side === 'mobs' ? `<span class="dot dot-${alignKind(p.alignment ?? 0)}"></span>` : '';
+    return `<li><button data-result="${kind}" data-vnum="${p.vnum}" class="result${p.loads.length ? '' : ' unloaded'}">
+      ${lead}<span class="result-main"><span class="result-name">${esc(titleCase(p.name))}</span>
+      <span class="result-sub">#${p.vnum} · ${sub}</span></span>
+      <span class="count" title="Loads at boot">${p.loads.length || '–'}</span></button></li>`;
+  }).join('');
+  searchStatus.textContent = !results.length ? 'No matches.'
+    : results.length > SEARCH_LIMIT ? `Showing ${SEARCH_LIMIT} of ${results.length}. Keep typing to narrow it down.`
+      : `${results.length} ${results.length === 1 ? 'match' : 'matches'}`;
+  highlightResult();
+}
+
+function highlightResult() {
+  for (const b of searchList.querySelectorAll('button[data-result]')) {
+    b.classList.toggle('active', state.info?.kind === b.dataset.result && state.info.vnum === Number(b.dataset.vnum));
+  }
+}
+
+searchList.addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-result]');
+  if (b) showInfo(b.dataset.result, Number(b.dataset.vnum));
+});
+
 function renderZoneList() {
   const q = zoneFilter.value.trim().toLowerCase();
   zoneList.innerHTML = state.index
@@ -534,7 +941,10 @@ function renderZoneList() {
         <span>${esc(z.name)}</span><span class="count">${z.roomCount}</span></button></li>`)
     .join('');
 }
-zoneFilter.addEventListener('input', renderZoneList);
+zoneFilter.addEventListener('input', () => {
+  if (state.side === 'zones') renderZoneList();
+  else runSearch().catch(showError);
+});
 zoneList.addEventListener('click', (e) => {
   const btn = e.target.closest('button[data-zone]');
   if (btn) goTo(Number(btn.dataset.zone), null);
@@ -547,11 +957,14 @@ async function init() {
   state.index = await res.json();
   state.zonesById = new Map(state.index.map((z) => [z.id, z]));
   renderZoneList();
-  const { zone, room } = readHash();
-  await goTo(zone ?? (state.zonesById.has(DEFAULT_ZONE) ? DEFAULT_ZONE : state.index[0].id), room);
+  const { zone, room, mob, info } = readHash();
+  await goTo(zone ?? (state.zonesById.has(DEFAULT_ZONE) ? DEFAULT_ZONE : state.index[0].id), room, mob);
+  if (info) showInfo(info.kind, info.vnum);
 }
 
-init().catch((err) => {
+function showError(err) {
   console.error(err);
   details.innerHTML = `<p class="muted">Error: ${esc(err.message)}</p>`;
-});
+}
+
+init().catch(showError);

@@ -28,9 +28,16 @@
             <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
           </button>
         </div>
-        <input id="zone-filter" type="search" placeholder="Filter zones…" autocomplete="off">
+        <div class="tabs side-tabs" role="tablist">
+          <button role="tab" data-side="zones" aria-selected="true">Zones</button>
+          <button role="tab" data-side="mobs" aria-selected="false">Mobs</button>
+          <button role="tab" data-side="items" aria-selected="false">Items</button>
+        </div>
+        <input id="zone-filter" type="search" placeholder="Filter zones…" autocomplete="off" aria-label="Search">
       </header>
       <ul id="zone-list" class="zone-list"></ul>
+      <ul id="search-list" class="zone-list search-list" hidden></ul>
+      <div id="search-status" class="search-status" hidden></div>
     </aside>
 
     <main class="pane map">
@@ -44,6 +51,7 @@
         <label><input type="checkbox" data-layer="teleport" checked><span class="sw sw-teleport"></span>Room teleport</label>
         <label><input type="checkbox" data-layer="external" checked><span class="sw sw-external"></span>Other zone</label>
         <label><input type="checkbox" data-layer="doors" checked><span class="sw sw-door"></span>Door <span class="sw sw-secret"></span>Secret</label>
+        <label><input type="checkbox" data-layer="mobs" checked><span class="dot dot-good"></span><span class="dot dot-neutral"></span><span class="dot dot-evil"></span>Mobs <span class="muted">(good / neutral / evil, ◆ aggressive)</span></label>
       </div>
       <div class="hint">Drag to rotate · right-drag to pan · scroll to zoom · double-click a room to focus</div>
     </main>
