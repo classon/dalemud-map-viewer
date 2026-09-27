@@ -213,8 +213,10 @@ def layout(rooms):
 
     Each exit tries to put its target one step in the exit's direction. When
     that cell is taken, the target is pushed further along the same direction
-    until a free cell is found. Exits that end up not matching a single grid
-    step are drawn by the viewer as "warp" links.
+    until a free cell is found. A clean-up pass (relax) then moves rooms to
+    free cells that shorten stretched links or straighten off-grid ones.
+    Exits that end up not matching a single grid step are drawn by the viewer
+    as "warp" links.
     """
     by_vnum = {r["vnum"]: r for r in rooms}
     pos = {}
@@ -256,6 +258,7 @@ def layout(rooms):
                 local[t] = cell
                 occupied[cell] = t
                 queue.append(t)
+        relax(local, neighbours)
         components.append(local)
         placed.update(local)
 
@@ -277,6 +280,54 @@ def layout(rooms):
         cz = (min(p[2] for p in pos.values()) + max(p[2] for p in pos.values())) // 2
         pos = {v: (p[0] - cx, p[1], p[2] - cz) for v, p in pos.items()}
     return pos
+
+
+OFF_GRID_COST = 3   # an off-grid link counts as much as three extra cells of stretch
+RELAX_REACH = 3     # candidate cells up to this many steps from each neighbour
+RELAX_PASSES = 12
+
+
+def link_cost(a, b, d):
+    """0 for a one-step link, k-1 when stretched to k steps, OFF_GRID_COST otherwise."""
+    dx, dy, dz = DIR_VECTORS[d]
+    delta = (b[0] - a[0], b[1] - a[1], b[2] - a[2])
+    k = delta[0] * dx + delta[1] * dy + delta[2] * dz
+    if k >= 1 and delta == (k * dx, k * dy, k * dz):
+        return k - 1
+    return OFF_GRID_COST
+
+
+def relax(local, neighbours):
+    """Greedy clean-up: move a room to a free cell when that lowers the cost of
+    its links, where candidates lie 1..RELAX_REACH steps from a neighbour in
+    the direction of the exit between them. Repeats until nothing moves."""
+    # neighbours hold (order, vertical, target, vector from v to target).
+    links = {v: [(t, DIR_VECTORS.index(vec)) for _, _, t, vec in neighbours[v] if t in local] for v in local}
+    occupied = {p: v for v, p in local.items()}
+    for _ in range(RELAX_PASSES):
+        moved = False
+        for v in sorted(local):
+            current = sum(link_cost(local[v], local[t], d) for t, d in links[v])
+            if current == 0:
+                continue
+            best, best_cost = None, current
+            for t, d in links[v]:
+                bx, by, bz = DIR_VECTORS[OPPOSITE[d]]
+                tx, ty, tz = local[t]
+                for k in range(1, RELAX_REACH + 1):
+                    cell = (tx + bx * k, ty + by * k, tz + bz * k)
+                    if cell in occupied:
+                        continue
+                    cost = sum(link_cost(cell, local[u], du) for u, du in links[v])
+                    if cost < best_cost:
+                        best, best_cost = cell, cost
+            if best:
+                del occupied[local[v]]
+                local[v] = best
+                occupied[best] = v
+                moved = True
+        if not moved:
+            break
 
 
 def slugify(name):
