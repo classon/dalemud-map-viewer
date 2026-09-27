@@ -1,0 +1,778 @@
+[
+ {
+  "id": 2,
+  "name": "LIMBO",
+  "bottom": 0,
+  "top": 49,
+  "roomCount": 17,
+  "file": "zones/2-limbo.json"
+ },
+ {
+  "id": 3,
+  "name": "Temple Extensions",
+  "bottom": 50,
+  "top": 199,
+  "roomCount": 92,
+  "file": "zones/3-temple-extensions.json"
+ },
+ {
+  "id": 4,
+  "name": "Doom Island",
+  "bottom": 200,
+  "top": 249,
+  "roomCount": 50,
+  "file": "zones/4-doom-island.json"
+ },
+ {
+  "id": 5,
+  "name": "Cueball's Area",
+  "bottom": 250,
+  "top": 305,
+  "roomCount": 56,
+  "file": "zones/5-cueball-s-area.json"
+ },
+ {
+  "id": 6,
+  "name": "The ambush",
+  "bottom": 306,
+  "top": 499,
+  "roomCount": 13,
+  "file": "zones/6-the-ambush.json"
+ },
+ {
+  "id": 7,
+  "name": "The colossal tree",
+  "bottom": 500,
+  "top": 510,
+  "roomCount": 9,
+  "file": "zones/7-the-colossal-tree.json"
+ },
+ {
+  "id": 8,
+  "name": "The small copse",
+  "bottom": 511,
+  "top": 521,
+  "roomCount": 6,
+  "file": "zones/8-the-small-copse.json"
+ },
+ {
+  "id": 9,
+  "name": "The Chaos guild hall",
+  "bottom": 522,
+  "top": 799,
+  "roomCount": 23,
+  "file": "zones/9-the-chaos-guild-hall.json"
+ },
+ {
+  "id": 10,
+  "name": "Asgard",
+  "bottom": 800,
+  "top": 1099,
+  "roomCount": 20,
+  "file": "zones/10-asgard.json"
+ },
+ {
+  "id": 11,
+  "name": "SHIRE",
+  "bottom": 1100,
+  "top": 1199,
+  "roomCount": 77,
+  "file": "zones/11-shire.json"
+ },
+ {
+  "id": 1400,
+  "name": "The Chessboard",
+  "bottom": 1200,
+  "top": 1499,
+  "roomCount": 71,
+  "file": "zones/1400-the-chessboard.json"
+ },
+ {
+  "id": 16,
+  "name": "The High Tower of Sorcerery",
+  "bottom": 1500,
+  "top": 1699,
+  "roomCount": 184,
+  "file": "zones/16-the-high-tower-of-sorcerery.json"
+ },
+ {
+  "id": 17,
+  "name": "The monk monastary",
+  "bottom": 1700,
+  "top": 1799,
+  "roomCount": 50,
+  "file": "zones/17-the-monk-monastary.json"
+ },
+ {
+  "id": 22,
+  "name": "Aarcerak's Area NOTDONE",
+  "bottom": 1800,
+  "top": 1899,
+  "roomCount": 1,
+  "file": "zones/22-aarcerak-s-area-notdone.json"
+ },
+ {
+  "id": 23,
+  "name": "Celestian's Jungle's of Chult",
+  "bottom": 1900,
+  "top": 1943,
+  "roomCount": 44,
+  "file": "zones/23-celestian-s-jungle-s-of-chult.json"
+ },
+ {
+  "id": 24,
+  "name": "Celestian's Jungle Top Pyramid",
+  "bottom": 1944,
+  "top": 1999,
+  "roomCount": 48,
+  "file": "zones/24-celestian-s-jungle-top-pyramid.json"
+ },
+ {
+  "id": 25,
+  "name": "Celestian's Lower Pyramid",
+  "bottom": 2000,
+  "top": 2099,
+  "roomCount": 24,
+  "file": "zones/25-celestian-s-lower-pyramid.json"
+ },
+ {
+  "id": 26,
+  "name": "Bandit's Temple CHECK/EMPTY",
+  "bottom": 2100,
+  "top": 2299,
+  "roomCount": 78,
+  "file": "zones/26-bandit-s-temple-check-empty.json"
+ },
+ {
+  "id": 27,
+  "name": "Stic's Area",
+  "bottom": 2300,
+  "top": 2700,
+  "roomCount": 401,
+  "file": "zones/27-stic-s-area.json"
+ },
+ {
+  "id": 28,
+  "name": "Celestian's Astral Zone",
+  "bottom": 2701,
+  "top": 2820,
+  "roomCount": 26,
+  "file": "zones/28-celestian-s-astral-zone.json"
+ },
+ {
+  "id": 30,
+  "name": "Northern Midgaard Main City",
+  "bottom": 2821,
+  "top": 3099,
+  "roomCount": 64,
+  "file": "zones/30-northern-midgaard-main-city.json"
+ },
+ {
+  "id": 31,
+  "name": "Southern part of Midgaard",
+  "bottom": 3100,
+  "top": 3199,
+  "roomCount": 62,
+  "file": "zones/31-southern-part-of-midgaard.json"
+ },
+ {
+  "id": 32,
+  "name": "River of Midgaard Empty",
+  "bottom": 3200,
+  "top": 3299,
+  "roomCount": 6,
+  "file": "zones/32-river-of-midgaard-empty.json"
+ },
+ {
+  "id": 33,
+  "name": "Buildings in Midgaard Empty",
+  "bottom": 3300,
+  "top": 3399,
+  "roomCount": 1,
+  "file": "zones/33-buildings-in-midgaard-empty.json"
+ },
+ {
+  "id": 34,
+  "name": "Ator's Area",
+  "bottom": 3400,
+  "top": 3499,
+  "roomCount": 95,
+  "file": "zones/34-ator-s-area.json"
+ },
+ {
+  "id": 37,
+  "name": "Felix's Arena and Houses",
+  "bottom": 3500,
+  "top": 3899,
+  "roomCount": 127,
+  "file": "zones/37-felix-s-arena-and-houses.json"
+ },
+ {
+  "id": 40,
+  "name": "Moria level 1-2",
+  "bottom": 4000,
+  "top": 4099,
+  "roomCount": 50,
+  "file": "zones/40-moria-level-1-2.json"
+ },
+ {
+  "id": 41,
+  "name": "Moria level 3-4",
+  "bottom": 4100,
+  "top": 4199,
+  "roomCount": 26,
+  "file": "zones/41-moria-level-3-4.json"
+ },
+ {
+  "id": 42,
+  "name": "Moria Extentions Scream's NOTDONE",
+  "bottom": 4200,
+  "top": 4999,
+  "roomCount": 278,
+  "file": "zones/42-moria-extentions-scream-s-notdone.json"
+ },
+ {
+  "id": 50,
+  "name": "The Great Eastern Desert",
+  "bottom": 5000,
+  "top": 5099,
+  "roomCount": 72,
+  "file": "zones/50-the-great-eastern-desert.json"
+ },
+ {
+  "id": 51,
+  "name": "drow city",
+  "bottom": 5100,
+  "top": 5199,
+  "roomCount": 54,
+  "file": "zones/51-drow-city.json"
+ },
+ {
+  "id": 52,
+  "name": "The City of Thalos",
+  "bottom": 5200,
+  "top": 5299,
+  "roomCount": 52,
+  "file": "zones/52-the-city-of-thalos.json"
+ },
+ {
+  "id": 53,
+  "name": "GREAT PYRAMID",
+  "bottom": 5300,
+  "top": 5399,
+  "roomCount": 51,
+  "file": "zones/53-great-pyramid.json"
+ },
+ {
+  "id": 60,
+  "name": "HAON-DOR-LIGHT",
+  "bottom": 5400,
+  "top": 6099,
+  "roomCount": 29,
+  "file": "zones/60-haon-dor-light.json"
+ },
+ {
+  "id": 61,
+  "name": "HAON-DOR-DARK",
+  "bottom": 6100,
+  "top": 6199,
+  "roomCount": 47,
+  "file": "zones/61-haon-dor-dark.json"
+ },
+ {
+  "id": 62,
+  "name": "QuickLand",
+  "bottom": 6200,
+  "top": 6221,
+  "roomCount": 20,
+  "file": "zones/62-quickland.json"
+ },
+ {
+  "id": 63,
+  "name": "Alun's Area",
+  "bottom": 6222,
+  "top": 6499,
+  "roomCount": 148,
+  "file": "zones/63-alun-s-area.json"
+ },
+ {
+  "id": 65,
+  "name": "The Dwarven Kingdom",
+  "bottom": 6500,
+  "top": 6599,
+  "roomCount": 50,
+  "file": "zones/65-the-dwarven-kingdom.json"
+ },
+ {
+  "id": 66,
+  "name": "Prydain",
+  "bottom": 6600,
+  "top": 6700,
+  "roomCount": 101,
+  "file": "zones/66-prydain.json"
+ },
+ {
+  "id": 68,
+  "name": "Arctica",
+  "bottom": 6701,
+  "top": 6899,
+  "roomCount": 80,
+  "file": "zones/68-arctica.json"
+ },
+ {
+  "id": 69,
+  "name": "Newbie Immort Area",
+  "bottom": 6900,
+  "top": 6999,
+  "roomCount": 100,
+  "file": "zones/69-newbie-immort-area.json"
+ },
+ {
+  "id": 70,
+  "name": "Sewer",
+  "bottom": 7000,
+  "top": 7099,
+  "roomCount": 62,
+  "file": "zones/70-sewer.json"
+ },
+ {
+  "id": 71,
+  "name": "SecondSewer",
+  "bottom": 7100,
+  "top": 7199,
+  "roomCount": 27,
+  "file": "zones/71-secondsewer.json"
+ },
+ {
+  "id": 72,
+  "name": "SEWERMAZE",
+  "bottom": 7200,
+  "top": 7399,
+  "roomCount": 42,
+  "file": "zones/72-sewermaze.json"
+ },
+ {
+  "id": 74,
+  "name": "The tunnels",
+  "bottom": 7400,
+  "top": 7499,
+  "roomCount": 46,
+  "file": "zones/74-the-tunnels.json"
+ },
+ {
+  "id": 75,
+  "name": "Dalamar's Moonshae ND",
+  "bottom": 7500,
+  "top": 7699,
+  "roomCount": 3,
+  "file": "zones/75-dalamar-s-moonshae-nd.json"
+ },
+ {
+  "id": 79,
+  "name": "Redferne's Res REWORK THIS!",
+  "bottom": 7700,
+  "top": 7999,
+  "roomCount": 20,
+  "file": "zones/79-redferne-s-res-rework-this.json"
+ },
+ {
+  "id": 80,
+  "name": "Zodiac's Zone",
+  "bottom": 8000,
+  "top": 8999,
+  "roomCount": 3,
+  "file": "zones/80-zodiac-s-zone.json"
+ },
+ {
+  "id": 81,
+  "name": "Valley Trail-Sarge's Area",
+  "bottom": 9000,
+  "top": 9199,
+  "roomCount": 19,
+  "file": "zones/81-valley-trail-sarge-s-area.json"
+ },
+ {
+  "id": 82,
+  "name": "Hill Giant Smial",
+  "bottom": 9200,
+  "top": 9400,
+  "roomCount": 156,
+  "file": "zones/82-hill-giant-smial.json"
+ },
+ {
+  "id": 94,
+  "name": "Frost giant Rift",
+  "bottom": 9401,
+  "top": 9480,
+  "roomCount": 78,
+  "file": "zones/94-frost-giant-rift.json"
+ },
+ {
+  "id": 95,
+  "name": "Frost giant rift level 2",
+  "bottom": 9481,
+  "top": 9600,
+  "roomCount": 69,
+  "file": "zones/95-frost-giant-rift-level-2.json"
+ },
+ {
+  "id": 100,
+  "name": "Celestian's Spider Haunt",
+  "bottom": 9601,
+  "top": 9699,
+  "roomCount": 63,
+  "file": "zones/100-celestian-s-spider-haunt.json"
+ },
+ {
+  "id": 105,
+  "name": "Celestian's Menzoberanzan",
+  "bottom": 9700,
+  "top": 10899,
+  "roomCount": 248,
+  "file": "zones/105-celestian-s-menzoberanzan.json"
+ },
+ {
+  "id": 109,
+  "name": "The Temple Maze",
+  "bottom": 10900,
+  "top": 10999,
+  "roomCount": 25,
+  "file": "zones/109-the-temple-maze.json"
+ },
+ {
+  "id": 110,
+  "name": "Main Castle Python",
+  "bottom": 11000,
+  "top": 11299,
+  "roomCount": 64,
+  "file": "zones/110-main-castle-python.json"
+ },
+ {
+  "id": 120,
+  "name": "Wert's Area NOTDONE",
+  "bottom": 11300,
+  "top": 12999,
+  "roomCount": 55,
+  "file": "zones/120-wert-s-area-notdone.json"
+ },
+ {
+  "id": 130,
+  "name": "New Thalos",
+  "bottom": 13000,
+  "top": 13699,
+  "roomCount": 300,
+  "file": "zones/130-new-thalos.json"
+ },
+ {
+  "id": 131,
+  "name": "Graecia",
+  "bottom": 13700,
+  "top": 13713,
+  "roomCount": 12,
+  "file": "zones/131-graecia.json"
+ },
+ {
+  "id": 132,
+  "name": "Labors of Hercules",
+  "bottom": 13714,
+  "top": 13727,
+  "roomCount": 14,
+  "file": "zones/132-labors-of-hercules.json"
+ },
+ {
+  "id": 133,
+  "name": "maze SMALL/CHECK",
+  "bottom": 13728,
+  "top": 13754,
+  "roomCount": 27,
+  "file": "zones/133-maze-small-check.json"
+ },
+ {
+  "id": 137,
+  "name": "Hades",
+  "bottom": 13755,
+  "top": 13779,
+  "roomCount": 25,
+  "file": "zones/137-hades.json"
+ },
+ {
+  "id": 138,
+  "name": "Mount Olympus",
+  "bottom": 13780,
+  "top": 13798,
+  "roomCount": 71,
+  "file": "zones/138-mount-olympus.json"
+ },
+ {
+  "id": 138,
+  "name": "Graecian Quest",
+  "bottom": 13799,
+  "top": 13850,
+  "roomCount": 71,
+  "file": "zones/138-graecian-quest.json"
+ },
+ {
+  "id": 139,
+  "name": "Forest of Rhowyn SMALL/CHECK",
+  "bottom": 13851,
+  "top": 13999,
+  "roomCount": 49,
+  "file": "zones/139-forest-of-rhowyn-small-check.json"
+ },
+ {
+  "id": 140,
+  "name": "Naril's Zone",
+  "bottom": 14000,
+  "top": 14999,
+  "roomCount": 176,
+  "file": "zones/140-naril-s-zone.json"
+ },
+ {
+  "id": 151,
+  "name": "Southern Lands SMALL/CHECK",
+  "bottom": 15000,
+  "top": 15100,
+  "roomCount": 106,
+  "file": "zones/151-southern-lands-small-check.json"
+ },
+ {
+  "id": 151,
+  "name": "Skexie palace",
+  "bottom": 15101,
+  "top": 15900,
+  "roomCount": 106,
+  "file": "zones/151-skexie-palace.json"
+ },
+ {
+  "id": 160,
+  "name": "Eastern Mountains",
+  "bottom": 15901,
+  "top": 16099,
+  "roomCount": 162,
+  "file": "zones/160-eastern-mountains.json"
+ },
+ {
+  "id": 164,
+  "name": "Gypsy village",
+  "bottom": 16100,
+  "top": 16199,
+  "roomCount": 52,
+  "file": "zones/164-gypsy-village.json"
+ },
+ {
+  "id": 162,
+  "name": "Undercaves 1",
+  "bottom": 16200,
+  "top": 16299,
+  "roomCount": 100,
+  "file": "zones/162-undercaves-1.json"
+ },
+ {
+  "id": 166,
+  "name": "The Heour",
+  "bottom": 16300,
+  "top": 16645,
+  "roomCount": 44,
+  "file": "zones/166-the-heour.json"
+ },
+ {
+  "id": 169,
+  "name": "LythCity",
+  "bottom": 16646,
+  "top": 16999,
+  "roomCount": 44,
+  "file": "zones/169-lythcity.json"
+ },
+ {
+  "id": 170,
+  "name": "White Plume Mountain",
+  "bottom": 17000,
+  "top": 17200,
+  "roomCount": 79,
+  "file": "zones/170-white-plume-mountain.json"
+ },
+ {
+  "id": 175,
+  "name": "Euphrate's NOT DONE",
+  "bottom": 17201,
+  "top": 17999,
+  "roomCount": 207,
+  "file": "zones/175-euphrate-s-not-done.json"
+ },
+ {
+  "id": 180,
+  "name": "DarkenElf's Area",
+  "bottom": 18000,
+  "top": 18999,
+  "roomCount": 112,
+  "file": "zones/180-darkenelf-s-area.json"
+ },
+ {
+  "id": 190,
+  "name": "Alien's Torture Keep",
+  "bottom": 19000,
+  "top": 19199,
+  "roomCount": 105,
+  "file": "zones/190-alien-s-torture-keep.json"
+ },
+ {
+  "id": 192,
+  "name": "Castle Mistamere",
+  "bottom": 19200,
+  "top": 19999,
+  "roomCount": 54,
+  "file": "zones/192-castle-mistamere.json"
+ },
+ {
+  "id": 200,
+  "name": "Arachnos",
+  "bottom": 20000,
+  "top": 20099,
+  "roomCount": 52,
+  "file": "zones/200-arachnos.json"
+ },
+ {
+  "id": 210,
+  "name": "Ershteep Road and City",
+  "bottom": 20100,
+  "top": 21100,
+  "roomCount": 63,
+  "file": "zones/210-ershteep-road-and-city.json"
+ },
+ {
+  "id": 211,
+  "name": "Mage Valley Entrance",
+  "bottom": 21101,
+  "top": 21199,
+  "roomCount": 99,
+  "file": "zones/211-mage-valley-entrance.json"
+ },
+ {
+  "id": 212,
+  "name": "Troglodyte Caves",
+  "bottom": 21200,
+  "top": 21268,
+  "roomCount": 69,
+  "file": "zones/212-troglodyte-caves.json"
+ },
+ {
+  "id": 216,
+  "name": "Abandoned Rhyodin Outpost",
+  "bottom": 21269,
+  "top": 21350,
+  "roomCount": 67,
+  "file": "zones/216-abandoned-rhyodin-outpost.json"
+ },
+ {
+  "id": 218,
+  "name": "Sauria",
+  "bottom": 21351,
+  "top": 21901,
+  "roomCount": 88,
+  "file": "zones/218-sauria.json"
+ },
+ {
+  "id": 219,
+  "name": "The Elven Forest",
+  "bottom": 21902,
+  "top": 22699,
+  "roomCount": 102,
+  "file": "zones/219-the-elven-forest.json"
+ },
+ {
+  "id": 231,
+  "name": "Krell's Area NOT DONE",
+  "bottom": 23100,
+  "top": 23999,
+  "roomCount": 54,
+  "file": "zones/231-krell-s-area-not-done.json"
+ },
+ {
+  "id": 240,
+  "name": "Blackmouth's Area",
+  "bottom": 24000,
+  "top": 24699,
+  "roomCount": 113,
+  "file": "zones/240-blackmouth-s-area.json"
+ },
+ {
+  "id": 247,
+  "name": "Deadhame upper",
+  "bottom": 24700,
+  "top": 24790,
+  "roomCount": 31,
+  "file": "zones/247-deadhame-upper.json"
+ },
+ {
+  "id": 24791,
+  "name": "Deadhame nether",
+  "bottom": 24791,
+  "top": 24799,
+  "roomCount": 9,
+  "file": "zones/24791-deadhame-nether.json"
+ },
+ {
+  "id": 249,
+  "name": "Goblin Marshes ND",
+  "bottom": 24800,
+  "top": 24999,
+  "roomCount": 11,
+  "file": "zones/249-goblin-marshes-nd.json"
+ },
+ {
+  "id": 250,
+  "name": "The Abyss",
+  "bottom": 25000,
+  "top": 25100,
+  "roomCount": 89,
+  "file": "zones/250-the-abyss.json"
+ },
+ {
+  "id": 255,
+  "name": "Sinistrad's Area",
+  "bottom": 25101,
+  "top": 25999,
+  "roomCount": 51,
+  "file": "zones/255-sinistrad-s-area.json"
+ },
+ {
+  "id": 270,
+  "name": "Tyr's Zone",
+  "bottom": 27000,
+  "top": 27199,
+  "roomCount": 140,
+  "file": "zones/270-tyr-s-zone.json"
+ },
+ {
+  "id": 272,
+  "name": "The Land down under",
+  "bottom": 27200,
+  "top": 27999,
+  "roomCount": 100,
+  "file": "zones/272-the-land-down-under.json"
+ },
+ {
+  "id": 290,
+  "name": "Empty area",
+  "bottom": 28000,
+  "top": 29999,
+  "roomCount": 90,
+  "file": "zones/290-empty-area.json"
+ },
+ {
+  "id": 300,
+  "name": "Celestian's Ravenloft Area",
+  "bottom": 30000,
+  "top": 31799,
+  "roomCount": 203,
+  "file": "zones/300-celestian-s-ravenloft-area.json"
+ },
+ {
+  "id": 353,
+  "name": "Mason's Troll Moors ND",
+  "bottom": 37101,
+  "top": 37300,
+  "roomCount": 200,
+  "file": "zones/353-mason-s-troll-moors-nd.json"
+ }
+]

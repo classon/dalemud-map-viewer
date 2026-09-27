@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DaleMUD Map Viewer</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three.module.js" } }
+  </script>
+</head>
+<body>
+  <div class="app">
+    <aside class="pane zones">
+      <header class="pane-head">
+        <h1>DaleMUD Maps</h1>
+        <input id="zone-filter" type="search" placeholder="Filter zones…" autocomplete="off">
+      </header>
+      <ul id="zone-list" class="zone-list"></ul>
+    </aside>
+
+    <main class="pane map">
+      <div id="map-title" class="map-title"></div>
+      <div id="viewport" class="viewport"></div>
+      <div id="tooltip" class="tooltip" hidden></div>
+      <div class="legend">
+        <label><input type="checkbox" data-layer="twoway" checked><span class="sw sw-twoway"></span>Two-way</label>
+        <label><input type="checkbox" data-layer="oneway" checked><span class="sw sw-oneway"></span>One-way</label>
+        <label><input type="checkbox" data-layer="warp" checked><span class="sw sw-warp"></span>Off-grid</label>
+        <label><input type="checkbox" data-layer="teleport" checked><span class="sw sw-teleport"></span>Room teleport</label>
+        <label><input type="checkbox" data-layer="external" checked><span class="sw sw-external"></span>Other zone</label>
+        <label><input type="checkbox" data-layer="doors" checked><span class="sw sw-door"></span>Door <span class="sw sw-secret"></span>Secret</label>
+      </div>
+      <div class="hint">Drag to rotate · right-drag to pan · scroll to zoom · double-click a room to focus</div>
+    </main>
+
+    <aside class="pane details">
+      <div id="room-details" class="room-details">
+        <p class="muted">Select a room on the map.</p>
+      </div>
+    </aside>
+  </div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
