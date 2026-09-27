@@ -23,10 +23,15 @@
       <header class="pane-head">
         <div class="title-row">
           <h1>DaleMUD Maps</h1>
+          <div class="head-buttons">
+          <button id="credits-open" class="theme-toggle" type="button" title="About &amp; credits" aria-label="About and credits">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg>
+          </button>
           <button id="theme-toggle" class="theme-toggle" type="button">
             <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
             <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
           </button>
+          </div>
         </div>
         <div class="tabs side-tabs" role="tablist">
           <button role="tab" data-side="zones" aria-selected="true">Zones</button>
@@ -62,6 +67,46 @@
       </div>
     </aside>
   </div>
+  <dialog id="credits" class="credits" aria-labelledby="credits-title">
+    <form method="dialog" class="credits-close"><button aria-label="Close">✕</button></form>
+    <h2 id="credits-title">About &amp; credits</h2>
+    <p>
+      An unofficial map viewer for the world of <strong>DaleMUD</strong>, the MUD that ran at
+      Shadowdale. Rooms, mobs and items are read from the game's own world files, as published in the
+      <a href="https://github.com/sneezymud/dalemud" target="_blank" rel="noopener">DaleMUD open source release</a>.
+      All of the world's text belongs to the people below.
+    </p>
+
+    <h3>DaleMUD / ShadowMUD at Shadowdale</h3>
+    <p>M. Wilson (Celestian), D. Julitov (Aarcerak) and M. Antich (Hiisi).</p>
+    <p class="muted">
+      Areas were written by many builders, several of whom are named in the zone list or in the saved
+      zone files, including Celestian, Stic, Alun, Sarge, Sarc, Kazgoroth, Euphrates, Tyr, Naril, Mason,
+      Krell and Dalamar.
+    </p>
+
+    <h3>SillyMUD</h3>
+    <p>Developed on machines at the University of Florida by J. Brothers, J. Sievert, K. McClelland,
+      S. Gardner, R. Forsman and P. Martin. SillyMUD was based on DikuMUD.</p>
+
+    <h3>DikuMUD</h3>
+    <p>Original game idea, concept and design by
+      Katja Nyboe (Superwoman), Tom Madsen (Stormbringer), Hans Henrik Stærfeldt (God),
+      Michael Seifert (Papi) and Sebastian Hammer (Quinn). Developed at DIKU, the Department of
+      Computer Science at the University of Copenhagen.</p>
+
+    <h3>License</h3>
+    <p>
+      DikuMUD and its derivatives are © 1990, 1991 the DikuMUD Group, all rights reserved, and are used
+      here under the <a href="LICENSE-DIKU.txt" target="_blank" rel="noopener">DikuMUD License</a>.
+      This site is free, non-commercial and carries no advertising.
+    </p>
+    <p class="muted">
+      The viewer itself: <a href="https://github.com/classon/dalemud-map-viewer" target="_blank" rel="noopener">github.com/classon/dalemud-map-viewer</a>.
+      Rendering by <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> (MIT license).
+    </p>
+  </dialog>
+
   <script type="module" src="app.js"></script>
 </body>
 </html>

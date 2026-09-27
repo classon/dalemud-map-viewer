@@ -76,3 +76,10 @@ or `&item=<vnum>` opens a mob or item from the search tabs.
 Room cube colour is the sector type (city, forest, water…). Mob markers sit on
 top of their room: blue is good, yellow neutral, red evil (alignment ±350),
 and a diamond instead of a ball means the mob is aggressive.
+
+## Credits and license
+
+The world data comes from the [DaleMUD open source release](https://github.com/sneezymud/dalemud),
+which descends from SillyMUD and DikuMUD. The viewer's **About & credits** panel (the ⓘ button)
+credits their authors, and [`web/LICENSE-DIKU.txt`](web/LICENSE-DIKU.txt) is the DikuMUD License,
+included unchanged as that license requires. It forbids any commercial use of the data.

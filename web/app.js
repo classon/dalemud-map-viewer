@@ -384,6 +384,12 @@ themeToggle.addEventListener('click', () => {
 });
 applyTheme(document.documentElement.dataset.theme === 'light' ? 'light' : 'dark');
 
+const credits = $('#credits');
+$('#credits-open').addEventListener('click', () => credits.showModal());
+credits.addEventListener('click', (e) => {
+  if (e.target === credits) credits.close(); // click on the backdrop
+});
+
 // ---------------------------------------------------------------- picking
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
