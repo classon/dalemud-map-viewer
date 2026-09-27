@@ -1,5 +1,7 @@
 # DaleMUD Map Viewer
 
+**Live: <https://classon.github.io/dalemud-map-viewer/>**
+
 A browser-based 3D viewer for the rooms in [DaleMUD](https://github.com/sneezymud/dalemud)'s
 `lib/tinyworld.wld`. Rooms are cubes on a 3D grid (north/south/east/west/up/down),
 connected by links; a zone list picks the area and a details pane shows the
@@ -50,6 +52,9 @@ directions). When the ideal cell is taken, the room is pushed further along
 the same direction, so the link stays straight but longer.
 
 ## Running
+
+Every push to `main` publishes `web/` to GitHub Pages via `.github/workflows/pages.yml`.
+To run it locally:
 
 `fetch()` needs HTTP, so serve the `web` folder:
 
