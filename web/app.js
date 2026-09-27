@@ -9,6 +9,7 @@ const VEC = [[0, 0, -1], [1, 0, 0], [0, 0, 1], [-1, 0, 0], [0, 1, 0], [0, -1, 0]
 const SPACING = 2.2;   // world units between grid cells
 const CUBE = 1;        // room cube size
 const DEFAULT_ZONE = 30;
+const DEFAULT_ROOM = 3025; // The Common Square, when the URL names no room
 
 const SECTOR_COLORS = {
   inside: '#8a7f72', city: '#9aa3ad', field: '#8cc56a', forest: '#3f8f4a',
@@ -138,8 +139,35 @@ function resize() {
 }
 new ResizeObserver(resize).observe(viewport);
 
+// ---------------------------------------------------------------- compass
+// OrbitControls' azimuth is the camera's angle around the vertical axis. At 0
+// the camera looks toward -z (north) with +x (east) to the right, and each
+// compass direction sits that many radians clockwise from screen-up.
+const compassRose = document.getElementById('compass-rose');
+const compassLetters = [...document.querySelectorAll('#compass text')];
+let compassAngle = null;
+
+function updateCompass() {
+  const theta = controls.getAzimuthalAngle();
+  if (theta === compassAngle) return;
+  compassAngle = theta;
+  compassRose.setAttribute('transform', `rotate(${THREE.MathUtils.radToDeg(theta)})`);
+  for (const t of compassLetters) {
+    const a = theta + Number(t.dataset.dir) * Math.PI / 2;
+    t.setAttribute('x', (Math.sin(a) * 24.5).toFixed(2));
+    t.setAttribute('y', (-Math.cos(a) * 24.5).toFixed(2));
+  }
+}
+
+// Swing the camera round to face north, keeping its height and distance.
+document.getElementById('compass').addEventListener('click', () => {
+  const offset = camera.position.clone().sub(controls.target);
+  camera.position.set(controls.target.x, camera.position.y, controls.target.z + Math.hypot(offset.x, offset.z));
+});
+
 renderer.setAnimationLoop(() => {
   controls.update();
+  updateCompass();
   renderer.render(scene, camera);
 });
 
@@ -968,7 +996,11 @@ async function init() {
   state.zonesById = new Map(state.index.map((z) => [z.id, z]));
   renderZoneList();
   const { zone, room, mob, info } = readHash();
-  await goTo(zone ?? (state.zonesById.has(DEFAULT_ZONE) ? DEFAULT_ZONE : state.index[0].id), room, mob);
+  if (zone == null && state.zonesById.has(DEFAULT_ZONE)) {
+    await goTo(DEFAULT_ZONE, DEFAULT_ROOM);
+  } else {
+    await goTo(zone ?? state.index[0].id, room, mob);
+  }
   if (info) showInfo(info.kind, info.vnum);
 }
 

@@ -47,6 +47,20 @@
 
     <main class="pane map">
       <div id="map-title" class="map-title"></div>
+      <button id="compass" class="compass" type="button" title="Compass · click to face north" aria-label="Compass, click to face north">
+        <svg viewBox="-32 -32 64 64" aria-hidden="true">
+          <circle r="30" class="compass-ring"/>
+          <g id="compass-rose">
+            <path d="M0 -21 L5 0 L-5 0 Z" class="needle-n"/>
+            <path d="M0 21 L5 0 L-5 0 Z" class="needle-s"/>
+            <circle r="2.2" class="needle-hub"/>
+          </g>
+          <text data-dir="0" class="compass-n">N</text>
+          <text data-dir="1">E</text>
+          <text data-dir="2">S</text>
+          <text data-dir="3">W</text>
+        </svg>
+      </button>
       <div id="viewport" class="viewport"></div>
       <div id="tooltip" class="tooltip" hidden></div>
       <div class="legend">
