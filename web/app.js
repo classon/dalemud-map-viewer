@@ -461,12 +461,30 @@ function addExternal(room, exit) {
   pickables.push(ghost);
 }
 
+// Place the camera on its usual diagonal, just far enough back that every
+// corner of the zone's bounding box is in view horizontally and vertically.
 function fitCamera(box) {
+  resize(); // make sure the aspect ratio is current
   const center = box.getCenter(new THREE.Vector3());
-  const radius = Math.max(box.getSize(new THREE.Vector3()).length() / 2, 4);
-  const dist = radius / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2)) * 0.85;
+  const toCamera = new THREE.Vector3(0, 0.75, 0.9).normalize();
+  const right = new THREE.Vector3(0, 1, 0).cross(toCamera).normalize();
+  const up = toCamera.clone().cross(right);
+  const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  const tanH = tanV * camera.aspect;
+  let dist = 6;
+  for (let i = 0; i < 8; i++) {
+    const corner = new THREE.Vector3(
+      i & 1 ? box.max.x : box.min.x, i & 2 ? box.max.y : box.min.y, i & 4 ? box.max.z : box.min.z,
+    ).sub(center);
+    // A corner at depth (dist - corner·toCamera) fits when its sideways and
+    // vertical offsets are within that depth times the half-angle tangents.
+    const needed = corner.dot(toCamera)
+      + Math.max(Math.abs(corner.dot(right)) / tanH, Math.abs(corner.dot(up)) / tanV);
+    dist = Math.max(dist, needed);
+  }
+  dist *= 1.05; // a little breathing room
   controls.target.copy(center);
-  camera.position.copy(center).add(new THREE.Vector3(0, 0.75, 0.9).normalize().multiplyScalar(dist));
+  camera.position.copy(center).addScaledVector(toCamera, dist);
   camera.near = dist / 100;
   camera.far = dist * 20;
   camera.updateProjectionMatrix();
