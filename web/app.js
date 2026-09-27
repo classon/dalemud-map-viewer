@@ -853,6 +853,58 @@ function selectMob(id, tab = null) {
   writeHash();
 }
 
+// ---------------------------------------------------------------- numpad walking
+// Numpad keys follow the selected room's exits like the game's movement
+// commands. event.code names the physical key, so NumLock doesn't matter.
+const NUMPAD_DIRS = { Numpad8: 0, Numpad6: 1, Numpad2: 2, Numpad4: 3, Numpad9: 4, Numpad3: 5 };
+const toast = $('#toast');
+let toastTimer = null;
+
+function showToast(text) {
+  toast.textContent = text;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 1400);
+}
+
+// Move the orbit target to pos and the camera by the same amount, so the view
+// pans without turning.
+function panTo(pos) {
+  const delta = pos.clone().sub(controls.target);
+  controls.target.add(delta);
+  camera.position.add(delta);
+}
+
+function walk(dir) {
+  const room = state.selected;
+  if (!room) return;
+  const exit = room.exits.find((e) => e.dir === dir);
+  if (!exit) {
+    showToast(`No exit ${DIRS[dir]}.`);
+    return;
+  }
+  if (exit.missing) {
+    showToast(`The exit ${DIRS[dir]} leads to room #${exit.to}, which doesn't exist.`);
+    return;
+  }
+  if (exit.toZone != null) {
+    goTo(exit.toZone, exit.to).catch(showError);
+    return;
+  }
+  selectRoom(exit.to);
+  const mesh = state.roomMeshes.get(exit.to);
+  if (mesh) panTo(mesh.position);
+}
+
+document.addEventListener('keydown', (e) => {
+  const dir = NUMPAD_DIRS[e.code];
+  if (dir == null || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.target instanceof Element && e.target.closest('input, textarea, select, [contenteditable]')) return;
+  if (credits.open) return;
+  e.preventDefault();
+  walk(dir);
+});
+
 async function loadZone(id) {
   if (!state.zoneCache.has(id)) {
     const entry = state.zonesById.get(id);

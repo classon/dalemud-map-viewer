@@ -132,6 +132,13 @@ body { background: var(--bg); color: var(--text); font: 14px/1.45 var(--font); }
 .sw-door { width: 8px; height: 8px; background: var(--door); border-radius: 1px; }
 .sw-secret { width: 8px; height: 8px; background: var(--secret); border-radius: 1px; margin-left: 4px; }
 
+.toast {
+  position: absolute; z-index: 3; top: 48px; left: 50%; transform: translate(-50%, -6px);
+  padding: 6px 12px; border-radius: 6px; font-size: 13px; pointer-events: none;
+  background: var(--panel-2); border: 1px solid var(--border);
+  opacity: 0; transition: opacity .15s, transform .15s;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
 .tooltip {
   position: absolute; z-index: 3; pointer-events: none; padding: 4px 8px;
   background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px;
