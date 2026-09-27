@@ -21,7 +21,7 @@ const SECTOR_COLORS = {
 const cssVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(`--${name}`).trim();
 const COLOR_KEYS = [
   'twoway', 'oneway', 'warp', 'teleport', 'external', 'door', 'secret', 'accent', 'bg', 'grid-major', 'grid-minor',
-  'mob-good', 'mob-neutral', 'mob-evil',
+  'mob-good', 'mob-neutral', 'mob-evil', 'death', 'peaceful', 'nomagic',
 ];
 const COLORS = {};
 function readColors() {
@@ -90,7 +90,7 @@ scene.add(world);
 const layers = {
   twoway: new THREE.Group(), oneway: new THREE.Group(), warp: new THREE.Group(),
   teleport: new THREE.Group(), external: new THREE.Group(), doors: new THREE.Group(),
-  mobs: new THREE.Group(),
+  mobs: new THREE.Group(), markers: new THREE.Group(),
 };
 
 // Shared resources are reused across zones and never disposed.
@@ -114,16 +114,27 @@ const aggroGeometry = new THREE.OctahedronGeometry(MOB_SIZE * 1.45);
 const mobMaterials = Object.fromEntries(['good', 'neutral', 'evil'].map((k) => [
   k, themed(new THREE.MeshStandardMaterial({ roughness: 0.4, emissiveIntensity: 0.35 }), `mob-${k}`),
 ]));
+// Death traps always get their own colour; peaceful and no-magic rooms get an
+// outline in the "markers" layer.
+const deathMaterial = themed(new THREE.MeshStandardMaterial({ roughness: 0.5, emissiveIntensity: 0.45 }), 'death');
+const roomMaterial = (room) => (room.flags.includes('death') ? deathMaterial : sectorMaterial(room.sector));
+const markerEdges = [1.14, 1.3].map((s) => new THREE.EdgesGeometry(new THREE.BoxGeometry(CUBE * s, CUBE * s, CUBE * s)));
+const markerMaterials = {
+  peaceful: themed(new THREE.LineBasicMaterial(), 'peaceful'),
+  no_magic: themed(new THREE.LineBasicMaterial(), 'nomagic'),
+};
+const ROOM_WARNINGS = { death: 'death trap', peaceful: 'peaceful', no_magic: 'no magic' };
+
 // Rooms on other floors are drawn with this when a single floor is shown.
 const ghostMaterial = themed(new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.1, depthWrite: false }), 'grid-major');
-const sharedMaterials = new Set([...Object.values(mobMaterials), ghostMaterial]);
+const sharedMaterials = new Set([...Object.values(mobMaterials), ghostMaterial, deathMaterial, ...Object.values(markerMaterials)]);
 
 // Tag an object with the floors (grid y) it belongs to, for the floor filter.
 const onLevels = (obj, ...ys) => {
   obj.userData.levels = ys;
   return obj;
 };
-const sharedGeometries = new Set([mobGeometry, aggroGeometry]);
+const sharedGeometries = new Set([mobGeometry, aggroGeometry, ...markerEdges]);
 
 const selectionBox = new THREE.LineSegments(
   new THREE.EdgesGeometry(new THREE.BoxGeometry(CUBE * 1.35, CUBE * 1.35, CUBE * 1.35)),
@@ -247,10 +258,15 @@ function buildZone(zone) {
   state.mobMeshes.clear();
 
   for (const room of zone.rooms) {
-    const mesh = new THREE.Mesh(cubeGeometry, sectorMaterial(room.sector));
+    const mesh = new THREE.Mesh(cubeGeometry, roomMaterial(room));
     mesh.position.copy(toWorld(room.pos));
     mesh.userData = { vnum: room.vnum, levels: [room.pos[1]], room: true };
     world.add(mesh);
+    ['peaceful', 'no_magic'].filter((f) => room.flags.includes(f)).forEach((flag, i) => {
+      const outline = new THREE.LineSegments(markerEdges[i], markerMaterials[flag]);
+      outline.position.copy(mesh.position);
+      layers.markers.add(onLevels(outline, room.pos[1]));
+    });
     pickables.push(mesh);
     state.roomMeshes.set(room.vnum, mesh);
   }
@@ -375,7 +391,7 @@ function applyLevelFilter() {
     const here = level == null || levels.includes(level);
     if (obj.userData.room) {
       obj.userData.ghost = !here;
-      obj.material = here ? sectorMaterial(state.rooms.get(obj.userData.vnum).sector) : ghostMaterial;
+      obj.material = here ? roomMaterial(state.rooms.get(obj.userData.vnum)) : ghostMaterial;
     } else {
       obj.visible = here;
     }
@@ -476,7 +492,7 @@ function applyTheme(theme) {
     const key = obj.material?.userData.colorKey;
     if (key) obj.material.color.copy(COLORS[key]);
   });
-  for (const m of Object.values(mobMaterials)) m.emissive.copy(m.color);
+  for (const m of [...Object.values(mobMaterials), deathMaterial]) m.emissive.copy(m.color);
   buildGrid();
 }
 
@@ -535,7 +551,11 @@ renderer.domElement.addEventListener('pointermove', (e) => {
   if (mobId != null) {
     const proto = mobProto(state.zone.mobs[mobId]);
     text = `${proto.name}  · level ${proto.level ?? '?'}`;
-  } else if (!external) text = `${state.rooms.get(vnum).name}  #${vnum}`;
+  } else if (!external) {
+    const room = state.rooms.get(vnum);
+    const warnings = room.flags.filter((f) => ROOM_WARNINGS[f]).map((f) => ROOM_WARNINGS[f]);
+    text = `${room.name}  #${vnum}${warnings.length ? `  ⚠ ${warnings.join(', ')}` : ''}`;
+  }
   else if (missing) text = `Exit to #${vnum} (room does not exist)`;
   else text = `→ #${vnum} in ${state.zonesById.get(zone)?.name ?? `zone ${zone}`}`;
   tooltip.textContent = text;
