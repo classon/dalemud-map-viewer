@@ -59,6 +59,7 @@ const state = {
   selected: null,
   selectedMob: null,      // spawn from zone.mobs
   mobTab: 'stats',
+  level: null,            // floor (grid y) shown on its own, or null for all
   info: null,             // { kind: 'mob' | 'item', vnum } prototype shown from search
   infoTab: 'stats',
   catalogs: {},           // 'mobs' | 'objects' -> Map(vnum -> prototype), loaded on demand
@@ -113,7 +114,15 @@ const aggroGeometry = new THREE.OctahedronGeometry(MOB_SIZE * 1.45);
 const mobMaterials = Object.fromEntries(['good', 'neutral', 'evil'].map((k) => [
   k, themed(new THREE.MeshStandardMaterial({ roughness: 0.4, emissiveIntensity: 0.35 }), `mob-${k}`),
 ]));
-const sharedMaterials = new Set([...Object.values(mobMaterials)]);
+// Rooms on other floors are drawn with this when a single floor is shown.
+const ghostMaterial = themed(new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.1, depthWrite: false }), 'grid-major');
+const sharedMaterials = new Set([...Object.values(mobMaterials), ghostMaterial]);
+
+// Tag an object with the floors (grid y) it belongs to, for the floor filter.
+const onLevels = (obj, ...ys) => {
+  obj.userData.levels = ys;
+  return obj;
+};
 const sharedGeometries = new Set([mobGeometry, aggroGeometry]);
 
 const selectionBox = new THREE.LineSegments(
@@ -240,7 +249,7 @@ function buildZone(zone) {
   for (const room of zone.rooms) {
     const mesh = new THREE.Mesh(cubeGeometry, sectorMaterial(room.sector));
     mesh.position.copy(toWorld(room.pos));
-    mesh.userData = { vnum: room.vnum };
+    mesh.userData = { vnum: room.vnum, levels: [room.pos[1]], room: true };
     world.add(mesh);
     pickables.push(mesh);
     state.roomMeshes.set(room.vnum, mesh);
@@ -269,8 +278,9 @@ function buildZone(zone) {
       const kind = !aligned ? 'warp' : back ? 'twoway' : 'oneway';
       const curve = aligned ? new THREE.LineCurve3(from, to) : warpCurve(from, to, exit.dir);
       const group = layers[kind];
-      group.add(tube(curve, kind, 0.05, aligned ? 1 : 24));
-      if (!back) group.add(arrowOn(curve, kind));
+      const ys = [room.pos[1], target.pos[1]];
+      group.add(onLevels(tube(curve, kind, 0.05, aligned ? 1 : 24), ...ys));
+      if (!back) group.add(onLevels(arrowOn(curve, kind), ...ys));
     }
 
     if (room.teleport) {
@@ -284,7 +294,8 @@ function buildZone(zone) {
           themed(new THREE.LineDashedMaterial({ dashSize: 0.3, gapSize: 0.2 }), 'teleport'),
         );
         line.computeLineDistances();
-        layers.teleport.add(line, arrowOn(curve, 'teleport', 0.8));
+        const ys = [room.pos[1], target.pos[1]];
+        layers.teleport.add(onLevels(line, ...ys), onLevels(arrowOn(curve, 'teleport', 0.8), ...ys));
       }
     }
   }
@@ -295,6 +306,9 @@ function buildZone(zone) {
 
   for (const layer of Object.values(layers)) world.add(layer);
   applyLayerVisibility();
+  state.level = null;
+  renderFloors(zone);
+  applyLevelFilter();
   fitCamera(box);
 }
 
@@ -316,7 +330,68 @@ function buildGrid(box = gridBox) {
   const center = box.getCenter(new THREE.Vector3());
   grid.position.set(center.x, box.min.y - 0.4, center.z);
   world.add(grid);
+  placeGrid();
 }
+
+// With one floor shown, the grid sits just under that floor.
+function placeGrid() {
+  if (!grid || !gridBox) return;
+  grid.position.y = state.level == null ? gridBox.min.y - 0.4 : state.level * SPACING - CUBE / 2 - 0.4;
+}
+
+// ---------------------------------------------------------------- floor filter
+const floorsEl = document.getElementById('floors');
+
+function renderFloors(zone) {
+  const counts = new Map();
+  for (const r of zone.rooms) counts.set(r.pos[1], (counts.get(r.pos[1]) ?? 0) + 1);
+  const levels = [...counts.keys()].sort((a, b) => b - a);
+  floorsEl.hidden = levels.length < 2;
+  floorsEl.innerHTML = `<button data-level="" title="Show every floor">All</button>`
+    + levels.map((y) => `<button data-level="${y}" title="Floor ${y} · ${counts.get(y)} rooms">${y > 0 ? '+' : ''}${y}</button>`).join('');
+  updateFloorButtons();
+}
+
+function updateFloorButtons() {
+  for (const b of floorsEl.querySelectorAll('button')) {
+    const level = b.dataset.level === '' ? null : Number(b.dataset.level);
+    b.setAttribute('aria-pressed', String(level === state.level));
+  }
+}
+
+function setLevel(level) {
+  state.level = level;
+  applyLevelFilter();
+  updateFloorButtons();
+}
+
+// Objects tagged with floors show only on the chosen floor; rooms elsewhere
+// stay as faint ghosts for context and can't be picked.
+function applyLevelFilter() {
+  const level = state.level;
+  world.traverse((obj) => {
+    const levels = obj.userData.levels;
+    if (!levels) return;
+    const here = level == null || levels.includes(level);
+    if (obj.userData.room) {
+      obj.userData.ghost = !here;
+      obj.material = here ? sectorMaterial(state.rooms.get(obj.userData.vnum).sector) : ghostMaterial;
+    } else {
+      obj.visible = here;
+    }
+  });
+  placeGrid();
+  // Selection outlines hide with their room's floor.
+  const shown = (room) => Boolean(room) && (level == null || room.pos[1] === level);
+  selectionBox.visible = shown(state.selected) && state.roomMeshes.has(state.selected.vnum);
+  mobSelection.visible = Boolean(state.selectedMob) && state.mobMeshes.has(state.selectedMob.id)
+    && shown(state.rooms.get(state.selectedMob.room));
+}
+
+floorsEl.addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-level]');
+  if (b) setLevel(b.dataset.level === '' ? null : Number(b.dataset.level));
+});
 
 // Mob markers sit on top of their room cube, three to a row, stacking upward
 // when a room is crowded.
@@ -335,7 +410,7 @@ function addMobs(zone) {
     mesh.position.copy(toWorld(room.pos)).add(new THREE.Vector3(
       (col - 1) * step, CUBE / 2 + MOB_SIZE * 1.3 + layer * step, (row - 1) * step,
     ));
-    mesh.userData = { mobId: spawn.id };
+    mesh.userData = { mobId: spawn.id, levels: [room.pos[1]] };
     layers.mobs.add(mesh);
     pickables.push(mesh);
     state.mobMeshes.set(spawn.id, mesh);
@@ -352,20 +427,20 @@ function addDoor(room, exit) {
   plate.position.copy(toWorld(room.pos)).addScaledVector(out, CUBE / 2 + 0.12);
   // Face the plate along the exit direction; vertical exits get a hatch.
   plate.lookAt(plate.position.clone().add(out));
-  layers.doors.add(plate);
+  layers.doors.add(onLevels(plate, room.pos[1]));
 }
 
 function addExternal(room, exit) {
   const from = toWorld(room.pos);
   const to = from.clone().addScaledVector(dirVec(exit.dir), SPACING * 0.75);
   const colorKey = exit.missing ? 'secret' : 'external';
-  layers.external.add(tube(new THREE.LineCurve3(from, to), colorKey, 0.04));
+  layers.external.add(onLevels(tube(new THREE.LineCurve3(from, to), colorKey, 0.04), room.pos[1]));
   const ghost = new THREE.Mesh(
     new THREE.BoxGeometry(CUBE * 0.4, CUBE * 0.4, CUBE * 0.4),
     themed(new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.75 }), colorKey),
   );
   ghost.position.copy(to);
-  ghost.userData = { vnum: exit.to, external: true, zone: exit.toZone, missing: exit.missing };
+  ghost.userData = { vnum: exit.to, external: true, zone: exit.toZone, missing: exit.missing, levels: [room.pos[1]] };
   layers.external.add(ghost);
   pickables.push(ghost);
 }
@@ -426,7 +501,9 @@ function pick(event) {
   const rect = renderer.domElement.getBoundingClientRect();
   pointer.set(((event.clientX - rect.left) / rect.width) * 2 - 1, -((event.clientY - rect.top) / rect.height) * 2 + 1);
   raycaster.setFromCamera(pointer, camera);
-  const hit = raycaster.intersectObjects(pickables.filter((o) => o.parent?.visible !== false), false)[0];
+  const hit = raycaster.intersectObjects(
+    pickables.filter((o) => o.visible && o.parent?.visible !== false && !o.userData.ghost), false,
+  )[0];
   return hit?.object ?? null;
 }
 
@@ -823,6 +900,8 @@ details.addEventListener('click', (e) => {
 // ---------------------------------------------------------------- selection & navigation
 function highlightRoom(room) {
   state.selected = room;
+  // Follow the selection onto its floor when a single floor is shown.
+  if (room && state.level != null && room.pos[1] !== state.level) setLevel(room.pos[1]);
   const mesh = room && state.roomMeshes.get(room.vnum);
   selectionBox.visible = Boolean(mesh);
   if (mesh) selectionBox.position.copy(mesh.position);

@@ -102,6 +102,20 @@ body { background: var(--bg); color: var(--text); font: 14px/1.45 var(--font); }
   background: color-mix(in srgb, var(--panel) 88%, transparent);
 }
 .compass:hover { border-color: var(--accent); }
+.floors {
+  position: absolute; top: 86px; right: 20px; z-index: 2; width: 52px;
+  display: flex; flex-direction: column; gap: 2px; padding: 4px;
+  max-height: calc(100% - 200px); overflow-y: auto;
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+  border: 1px solid var(--border); border-radius: 8px;
+}
+.floors[hidden] { display: none; }
+.floors button {
+  border: 0; border-radius: 5px; padding: 3px 0; background: none; color: var(--muted);
+  font: 600 12px var(--font); font-variant-numeric: tabular-nums; cursor: pointer;
+}
+.floors button:hover { color: var(--text); background: var(--panel-2); }
+.floors button[aria-pressed="true"] { color: var(--text); background: color-mix(in srgb, var(--accent) 28%, transparent); }
 .compass svg { display: block; width: 100%; height: 100%; }
 .compass-ring { fill: none; stroke: var(--border); stroke-width: 1; }
 .needle-n { fill: var(--secret); }
