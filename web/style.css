@@ -13,7 +13,32 @@
   --external: #4cc38a;
   --door: #d8b36a;
   --secret: #ef5b5b;
+  --grid-major: #39404c;
+  --grid-minor: #242933;
+  --title-shadow: 0 1px 3px #000;
+  color-scheme: dark;
   --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+:root[data-theme="light"] {
+  --bg: #eef1f5;
+  --panel: #ffffff;
+  --panel-2: #f3f5f8;
+  --border: #d6dbe3;
+  --text: #1c2330;
+  --muted: #5f6b7a;
+  --accent: #2f6fdb;
+  --twoway: #5a6b86;
+  --oneway: #d97a06;
+  --warp: #b43fc8;
+  --teleport: #7c5ce0;
+  --external: #1f9d63;
+  --door: #a8802f;
+  --secret: #d63a3a;
+  --grid-major: #b9c1cd;
+  --grid-minor: #d9dee6;
+  --title-shadow: 0 1px 2px #fff;
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; }
@@ -32,7 +57,17 @@ body { background: var(--bg); color: var(--text); font: 14px/1.45 var(--font); }
 .details { border-left: 1px solid var(--border); }
 
 .pane-head { padding: 14px 14px 10px; border-bottom: 1px solid var(--border); }
-.pane-head h1 { font-size: 15px; margin: 0 0 10px; letter-spacing: .02em; }
+.pane-head .title-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.pane-head h1 { font-size: 15px; margin: 0; letter-spacing: .02em; }
+.theme-toggle {
+  display: grid; place-items: center; width: 28px; height: 28px; padding: 0;
+  border: 1px solid var(--border); border-radius: 6px; background: var(--panel-2);
+  color: var(--text); cursor: pointer;
+}
+.theme-toggle:hover { border-color: var(--accent); }
+.theme-toggle svg { width: 16px; height: 16px; }
+:root[data-theme="light"] .theme-toggle .icon-sun,
+:root:not([data-theme="light"]) .theme-toggle .icon-moon { display: none; }
 #zone-filter {
   width: 100%; padding: 6px 8px; border-radius: 6px;
   border: 1px solid var(--border); background: var(--panel-2); color: var(--text);
@@ -53,7 +88,7 @@ body { background: var(--bg); color: var(--text); font: 14px/1.45 var(--font); }
 .viewport canvas { display: block; }
 .map-title {
   position: absolute; top: 12px; left: 14px; z-index: 2; pointer-events: none;
-  font-weight: 600; font-size: 16px; text-shadow: 0 1px 3px #000;
+  font-weight: 600; font-size: 16px; text-shadow: var(--title-shadow);
 }
 .map-title small { color: var(--muted); font-weight: 400; margin-left: 6px; }
 .hint {

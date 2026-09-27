@@ -16,11 +16,21 @@ const SECTOR_COLORS = {
   air: '#cfe8ff', underwater: '#1f4f8f', desert: '#e0c476', tree: '#5f7f2f',
 };
 
+// Scene colors come from the CSS variables so they follow the light/dark theme.
 const cssVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(`--${name}`).trim();
-const COLORS = Object.fromEntries(
-  ['twoway', 'oneway', 'warp', 'teleport', 'external', 'door', 'secret', 'accent', 'bg']
-    .map((n) => [n, new THREE.Color(cssVar(n))]),
-);
+const COLOR_KEYS = ['twoway', 'oneway', 'warp', 'teleport', 'external', 'door', 'secret', 'accent', 'bg', 'grid-major', 'grid-minor'];
+const COLORS = {};
+function readColors() {
+  for (const n of COLOR_KEYS) COLORS[n] = new THREE.Color(cssVar(n));
+}
+readColors();
+
+// Tag a material with the color variable it uses so a theme switch can recolor it.
+function themed(material, key) {
+  material.color.copy(COLORS[key]);
+  material.userData.colorKey = key;
+  return material;
+}
 
 // ---------------------------------------------------------------- DOM refs
 const $ = (sel) => document.querySelector(sel);
@@ -81,7 +91,7 @@ function sectorMaterial(sector) {
 
 const selectionBox = new THREE.LineSegments(
   new THREE.EdgesGeometry(new THREE.BoxGeometry(CUBE * 1.35, CUBE * 1.35, CUBE * 1.35)),
-  new THREE.LineBasicMaterial({ color: COLORS.accent }),
+  themed(new THREE.LineBasicMaterial(), 'accent'),
 );
 selectionBox.visible = false;
 scene.add(selectionBox);
@@ -104,15 +114,15 @@ renderer.setAnimationLoop(() => {
 const toWorld = ([x, y, z]) => new THREE.Vector3(x * SPACING, y * SPACING, z * SPACING);
 const dirVec = (d) => new THREE.Vector3(...VEC[d]);
 
-function tube(curve, color, radius = 0.05, segments = 1) {
+function tube(curve, colorKey, radius = 0.05, segments = 1) {
   const geo = new THREE.TubeGeometry(curve, segments, radius, 6, false);
-  return new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color }));
+  return new THREE.Mesh(geo, themed(new THREE.MeshBasicMaterial(), colorKey));
 }
 
-function arrowOn(curve, color, t = 0.62) {
+function arrowOn(curve, colorKey, t = 0.62) {
   const cone = new THREE.Mesh(
     new THREE.ConeGeometry(0.14, 0.38, 10),
-    new THREE.MeshBasicMaterial({ color }),
+    themed(new THREE.MeshBasicMaterial(), colorKey),
   );
   cone.position.copy(curve.getPointAt(t));
   cone.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), curve.getTangentAt(t).normalize());
@@ -193,11 +203,10 @@ function buildZone(zone) {
       const to = toWorld(target.pos);
       const aligned = room.vnum !== target.vnum && isAligned(room.pos, target.pos, exit.dir);
       const kind = !aligned ? 'warp' : back ? 'twoway' : 'oneway';
-      const color = COLORS[kind];
       const curve = aligned ? new THREE.LineCurve3(from, to) : warpCurve(from, to, exit.dir);
       const group = layers[kind];
-      group.add(tube(curve, color, 0.05, aligned ? 1 : 24));
-      if (!back) group.add(arrowOn(curve, color));
+      group.add(tube(curve, kind, 0.05, aligned ? 1 : 24));
+      if (!back) group.add(arrowOn(curve, kind));
     }
 
     if (room.teleport) {
@@ -208,33 +217,47 @@ function buildZone(zone) {
         const curve = new THREE.QuadraticBezierCurve3(from, mid, to);
         const line = new THREE.Line(
           new THREE.BufferGeometry().setFromPoints(curve.getPoints(40)),
-          new THREE.LineDashedMaterial({ color: COLORS.teleport, dashSize: 0.3, gapSize: 0.2 }),
+          themed(new THREE.LineDashedMaterial({ dashSize: 0.3, gapSize: 0.2 }), 'teleport'),
         );
         line.computeLineDistances();
-        layers.teleport.add(line, arrowOn(curve, COLORS.teleport, 0.8));
+        layers.teleport.add(line, arrowOn(curve, 'teleport', 0.8));
       }
     }
   }
 
-  // A faint floor grid under the lowest level for orientation.
   const box = new THREE.Box3().setFromObject(world);
-  const size = box.getSize(new THREE.Vector3());
-  const span = Math.ceil(Math.max(size.x, size.z) / SPACING + 4) * SPACING;
-  const grid = new THREE.GridHelper(span, Math.round(span / SPACING), 0x39404c, 0x242933);
-  const center = box.getCenter(new THREE.Vector3());
-  grid.position.set(center.x, box.min.y - 0.4, center.z);
-  world.add(grid);
+  buildGrid(box);
 
   for (const layer of Object.values(layers)) world.add(layer);
   applyLayerVisibility();
   fitCamera(box);
 }
 
+// A faint floor grid under the lowest level for orientation. GridHelper bakes
+// its colors into the geometry, so a theme switch rebuilds it.
+let grid = null;
+let gridBox = null;
+function buildGrid(box = gridBox) {
+  if (!box) return;
+  gridBox = box;
+  if (grid) {
+    grid.geometry.dispose();
+    grid.material.dispose();
+    grid.removeFromParent();
+  }
+  const size = box.getSize(new THREE.Vector3());
+  const span = Math.ceil(Math.max(size.x, size.z) / SPACING + 4) * SPACING;
+  grid = new THREE.GridHelper(span, Math.round(span / SPACING), COLORS['grid-major'], COLORS['grid-minor']);
+  const center = box.getCenter(new THREE.Vector3());
+  grid.position.set(center.x, box.min.y - 0.4, center.z);
+  world.add(grid);
+}
+
 function addDoor(room, exit) {
   const secret = exit.flags.includes('secret');
   const plate = new THREE.Mesh(
     new THREE.BoxGeometry(0.42, 0.62, 0.08),
-    new THREE.MeshBasicMaterial({ color: secret ? COLORS.secret : COLORS.door }),
+    themed(new THREE.MeshBasicMaterial(), secret ? 'secret' : 'door'),
   );
   const out = dirVec(exit.dir);
   plate.position.copy(toWorld(room.pos)).addScaledVector(out, CUBE / 2 + 0.12);
@@ -246,11 +269,11 @@ function addDoor(room, exit) {
 function addExternal(room, exit) {
   const from = toWorld(room.pos);
   const to = from.clone().addScaledVector(dirVec(exit.dir), SPACING * 0.75);
-  const color = exit.missing ? COLORS.secret : COLORS.external;
-  layers.external.add(tube(new THREE.LineCurve3(from, to), color, 0.04));
+  const colorKey = exit.missing ? 'secret' : 'external';
+  layers.external.add(tube(new THREE.LineCurve3(from, to), colorKey, 0.04));
   const ghost = new THREE.Mesh(
     new THREE.BoxGeometry(CUBE * 0.4, CUBE * 0.4, CUBE * 0.4),
-    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.75 }),
+    themed(new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.75 }), colorKey),
   );
   ghost.position.copy(to);
   ghost.userData = { vnum: exit.to, external: true, zone: exit.toZone, missing: exit.missing };
@@ -275,6 +298,29 @@ function applyLayerVisibility() {
   }
 }
 document.querySelector('.legend').addEventListener('change', applyLayerVisibility);
+
+// ---------------------------------------------------------------- theme
+const themeToggle = $('#theme-toggle');
+
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  const next = theme === 'light' ? 'dark' : 'light';
+  themeToggle.title = themeToggle.ariaLabel = `Switch to ${next} mode`;
+  readColors();
+  renderer.setClearColor(COLORS.bg);
+  scene.traverse((obj) => {
+    const key = obj.material?.userData.colorKey;
+    if (key) obj.material.color.copy(COLORS[key]);
+  });
+  buildGrid();
+}
+
+themeToggle.addEventListener('click', () => {
+  const theme = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+  try { localStorage.setItem('theme', theme); } catch {}
+  applyTheme(theme);
+});
+applyTheme(document.documentElement.dataset.theme === 'light' ? 'light' : 'dark');
 
 // ---------------------------------------------------------------- picking
 const raycaster = new THREE.Raycaster();
