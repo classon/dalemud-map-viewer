@@ -571,18 +571,18 @@
   "name": "Mount Olympus",
   "bottom": 13780,
   "top": 13798,
-  "roomCount": 71,
-  "mobCount": 43,
+  "roomCount": 19,
+  "mobCount": 7,
   "file": "zones/138-mount-olympus.json"
  },
  {
-  "id": 138,
+  "id": 13799,
   "name": "Graecian Quest",
   "bottom": 13799,
   "top": 13850,
-  "roomCount": 71,
-  "mobCount": 43,
-  "file": "zones/138-graecian-quest.json"
+  "roomCount": 52,
+  "mobCount": 36,
+  "file": "zones/13799-graecian-quest.json"
  },
  {
   "id": 139,
@@ -607,18 +607,18 @@
   "name": "Southern Lands SMALL/CHECK",
   "bottom": 15000,
   "top": 15100,
-  "roomCount": 106,
-  "mobCount": 131,
+  "roomCount": 6,
+  "mobCount": 1,
   "file": "zones/151-southern-lands-small-check.json"
  },
  {
-  "id": 151,
+  "id": 15101,
   "name": "Skexie palace",
   "bottom": 15101,
   "top": 15900,
-  "roomCount": 106,
-  "mobCount": 131,
-  "file": "zones/151-skexie-palace.json"
+  "roomCount": 100,
+  "mobCount": 130,
+  "file": "zones/15101-skexie-palace.json"
  },
  {
   "id": 160,

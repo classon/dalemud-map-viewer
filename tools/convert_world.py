@@ -264,6 +264,19 @@ def main():
     args = ap.parse_args()
 
     zones = parse_zones((args.lib / "tinyworld.zon").read_text(encoding="latin-1"))
+    # A few zones reuse another zone's number (the game only goes by position).
+    # Keep the number for the first; later ones get their first room's vnum.
+    seen_ids = {z["id"] for z in zones}
+    first = set()
+    for z in zones:
+        if z["id"] in first:
+            new_id = z["bottom"]
+            if new_id in seen_ids:
+                raise SystemExit(f"zone {z['name']!r}: fallback id {new_id} is taken")
+            print(f"note: zone {z['name']!r} reuses number {z['id']}; using {new_id}", file=sys.stderr)
+            z["number"], z["id"] = z["id"], new_id
+            seen_ids.add(new_id)
+        first.add(z["id"])
     saved_zones = load_saved_zone_commands(args.lib / "zones", zones)
     rooms = parse_rooms((args.lib / "tinyworld.wld").read_text(encoding="latin-1"))
     all_vnums = {r["vnum"] for r in rooms}
