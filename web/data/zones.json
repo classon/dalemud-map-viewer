@@ -193,7 +193,7 @@
   "name": "Northern Midgaard Main City",
   "bottom": 2821,
   "top": 3099,
-  "roomCount": 64,
+  "roomCount": 70,
   "mobCount": 49,
   "file": "zones/30-northern-midgaard-main-city.json"
  },
@@ -337,7 +337,7 @@
   "name": "Alun's Area",
   "bottom": 6222,
   "top": 6499,
-  "roomCount": 148,
+  "roomCount": 149,
   "mobCount": 61,
   "file": "zones/63-alun-s-area.json"
  },
@@ -837,12 +837,21 @@
   "file": "zones/255-sinistrad-s-area.json"
  },
  {
+  "id": 260,
+  "name": "Alun's area ND",
+  "bottom": 26000,
+  "top": 26999,
+  "roomCount": 1,
+  "mobCount": 0,
+  "file": "zones/260-alun-s-area-nd.json"
+ },
+ {
   "id": 270,
   "name": "Tyr's Zone",
   "bottom": 27000,
   "top": 27199,
-  "roomCount": 140,
-  "mobCount": 148,
+  "roomCount": 162,
+  "mobCount": 173,
   "file": "zones/270-tyr-s-zone.json"
  },
  {

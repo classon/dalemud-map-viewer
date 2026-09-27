@@ -175,6 +175,32 @@ def parse_rooms(text):
     return rooms
 
 
+def load_rooms(lib):
+    """tinyworld.wld, then lib/rooms/<vnum> files replacing or adding rooms.
+
+    Mirrors boot_world() followed by boot_saved_rooms(), which skips files
+    numbered above the last room in the world file.
+    """
+    rooms = {r["vnum"]: r for r in parse_rooms((lib / "tinyworld.wld").read_text(encoding="latin-1"))}
+    top = max(rooms)
+    saved_dir = lib / "rooms"
+    added = replaced = 0
+    if saved_dir.is_dir():
+        for f in sorted(saved_dir.iterdir(), key=lambda f: f.name):
+            if not f.name.isdigit() or not 0 < int(f.name) <= top:
+                continue
+            for room in parse_rooms(f.read_text(encoding="latin-1")):
+                room["vnum"] = int(f.name)  # the game takes the number from the file name
+                if room["vnum"] in rooms:
+                    replaced += 1
+                else:
+                    added += 1
+                rooms[room["vnum"]] = room
+    if added or replaced:
+        print(f"lib/rooms: {replaced} rooms replaced, {added} added")
+    return [rooms[v] for v in sorted(rooms)]
+
+
 def zone_for(vnum, zones):
     for z in zones:
         if vnum <= z["top"]:
@@ -278,7 +304,7 @@ def main():
             seen_ids.add(new_id)
         first.add(z["id"])
     saved_zones = load_saved_zone_commands(args.lib / "zones", zones)
-    rooms = parse_rooms((args.lib / "tinyworld.wld").read_text(encoding="latin-1"))
+    rooms = load_rooms(args.lib)
     all_vnums = {r["vnum"] for r in rooms}
     mob_protos = parse_mobs((args.lib / "tinyworld.mob").read_text(encoding="latin-1"))
     obj_protos = parse_objects((args.lib / "tinyworld.obj").read_text(encoding="latin-1"), args.lib / "objects")
