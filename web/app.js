@@ -576,10 +576,14 @@ function renderMob(spawn) {
     <div class="tab-panel">${tab === 'stats' ? stats : equipment}</div>`;
 }
 
+// GitHub Pages lets browsers reuse files for 10 minutes. Revalidating makes
+// regenerated data show up straight away; unchanged files cost a 304.
+const fetchData = (url) => fetch(url, { cache: 'no-cache' });
+
 // ---------------------------------------------------------------- prototype views (from search)
 async function loadCatalog(name) {
   if (!state.catalogs[name]) {
-    state.catalogs[name] = fetch(`data/${name}.json`)
+    state.catalogs[name] = fetchData(`data/${name}.json`)
       .then((res) => {
         if (!res.ok) throw new Error(`Failed to load ${name}.json: ${res.status}`);
         return res.json();
@@ -824,7 +828,7 @@ function selectMob(id, tab = null) {
 async function loadZone(id) {
   if (!state.zoneCache.has(id)) {
     const entry = state.zonesById.get(id);
-    const res = await fetch(`data/${entry.file}`);
+    const res = await fetchData(`data/${entry.file}`);
     if (!res.ok) throw new Error(`Failed to load ${entry.file}: ${res.status}`);
     state.zoneCache.set(id, await res.json());
   }
@@ -958,7 +962,7 @@ zoneList.addEventListener('click', (e) => {
 
 // ---------------------------------------------------------------- boot
 async function init() {
-  const res = await fetch('data/zones.json');
+  const res = await fetchData('data/zones.json');
   if (!res.ok) throw new Error('data/zones.json not found. Run tools/convert_world.py first.');
   state.index = await res.json();
   state.zonesById = new Map(state.index.map((z) => [z.id, z]));
