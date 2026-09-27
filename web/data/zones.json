@@ -6,7 +6,10 @@
   "top": 0,
   "roomCount": 1,
   "mobCount": 0,
-  "file": "zones/0-scratch-zone-for-static-game.json"
+  "file": "zones/0-scratch-zone-for-static-game.json",
+  "links": {
+   "3": 1
+  }
  },
  {
   "id": 2,
@@ -15,7 +18,19 @@
   "top": 49,
   "roomCount": 16,
   "mobCount": 1,
-  "file": "zones/2-limbo.json"
+  "file": "zones/2-limbo.json",
+  "links": {
+   "3": 2,
+   "11": 1,
+   "16": 1,
+   "30": 1,
+   "40": 1,
+   "61": 1,
+   "130": 1,
+   "151": 1,
+   "200": 1,
+   "210": 1
+  }
  },
  {
   "id": 3,
@@ -24,7 +39,14 @@
   "top": 199,
   "roomCount": 92,
   "mobCount": 13,
-  "file": "zones/3-temple-extensions.json"
+  "file": "zones/3-temple-extensions.json",
+  "links": {
+   "2": 1,
+   "4": 1,
+   "30": 5,
+   "109": 1,
+   "120": 1
+  }
  },
  {
   "id": 4,
@@ -33,7 +55,11 @@
   "top": 249,
   "roomCount": 50,
   "mobCount": 42,
-  "file": "zones/4-doom-island.json"
+  "file": "zones/4-doom-island.json",
+  "links": {
+   "3": 1,
+   "30": 1
+  }
  },
  {
   "id": 5,
@@ -42,7 +68,12 @@
   "top": 305,
   "roomCount": 56,
   "mobCount": 16,
-  "file": "zones/5-cueball-s-area.json"
+  "file": "zones/5-cueball-s-area.json",
+  "links": {
+   "30": 2,
+   "42": 1,
+   "60": 1
+  }
  },
  {
   "id": 6,
@@ -51,7 +82,10 @@
   "top": 499,
   "roomCount": 13,
   "mobCount": 16,
-  "file": "zones/6-the-ambush.json"
+  "file": "zones/6-the-ambush.json",
+  "links": {
+   "151": 6
+  }
  },
  {
   "id": 7,
@@ -60,7 +94,10 @@
   "top": 510,
   "roomCount": 9,
   "mobCount": 1,
-  "file": "zones/7-the-colossal-tree.json"
+  "file": "zones/7-the-colossal-tree.json",
+  "links": {
+   "61": 1
+  }
  },
  {
   "id": 8,
@@ -69,7 +106,10 @@
   "top": 521,
   "roomCount": 6,
   "mobCount": 1,
-  "file": "zones/8-the-small-copse.json"
+  "file": "zones/8-the-small-copse.json",
+  "links": {
+   "60": 1
+  }
  },
  {
   "id": 9,
@@ -78,7 +118,12 @@
   "top": 799,
   "roomCount": 23,
   "mobCount": 0,
-  "file": "zones/9-the-chaos-guild-hall.json"
+  "file": "zones/9-the-chaos-guild-hall.json",
+  "links": {
+   "11": 2,
+   "17": 1,
+   "30": 2
+  }
  },
  {
   "id": 10,
@@ -87,7 +132,10 @@
   "top": 1099,
   "roomCount": 20,
   "mobCount": 0,
-  "file": "zones/10-asgard.json"
+  "file": "zones/10-asgard.json",
+  "links": {
+   "30": 2
+  }
  },
  {
   "id": 11,
@@ -96,7 +144,16 @@
   "top": 1199,
   "roomCount": 77,
   "mobCount": 108,
-  "file": "zones/11-shire.json"
+  "file": "zones/11-shire.json",
+  "links": {
+   "3": 1,
+   "9": 1,
+   "17": 2,
+   "23": 1,
+   "30": 1,
+   "31": 1,
+   "60": 1
+  }
  },
  {
   "id": 1400,
@@ -105,7 +162,10 @@
   "top": 1499,
   "roomCount": 71,
   "mobCount": 71,
-  "file": "zones/1400-the-chessboard.json"
+  "file": "zones/1400-the-chessboard.json",
+  "links": {
+   "30": 1
+  }
  },
  {
   "id": 16,
@@ -114,7 +174,17 @@
   "top": 1699,
   "roomCount": 184,
   "mobCount": 116,
-  "file": "zones/16-the-high-tower-of-sorcerery.json"
+  "file": "zones/16-the-high-tower-of-sorcerery.json",
+  "links": {
+   "30": 2,
+   "41": 1,
+   "51": 1,
+   "61": 2,
+   "70": 1,
+   "74": 1,
+   "139": 2,
+   "210": 1
+  }
  },
  {
   "id": 17,
@@ -123,7 +193,11 @@
   "top": 1799,
   "roomCount": 50,
   "mobCount": 40,
-  "file": "zones/17-the-monk-monastary.json"
+  "file": "zones/17-the-monk-monastary.json",
+  "links": {
+   "9": 1,
+   "11": 2
+  }
  },
  {
   "id": 22,
@@ -132,7 +206,11 @@
   "top": 1899,
   "roomCount": 1,
   "mobCount": 0,
-  "file": "zones/22-aarcerak-s-area-notdone.json"
+  "file": "zones/22-aarcerak-s-area-notdone.json",
+  "links": {
+   "23": 1,
+   "30": 1
+  }
  },
  {
   "id": 23,
@@ -141,7 +219,14 @@
   "top": 1943,
   "roomCount": 44,
   "mobCount": 28,
-  "file": "zones/23-celestian-s-jungle-s-of-chult.json"
+  "file": "zones/23-celestian-s-jungle-s-of-chult.json",
+  "links": {
+   "0": 2,
+   "10": 1,
+   "11": 1,
+   "24": 1,
+   "30": 4
+  }
  },
  {
   "id": 24,
@@ -150,7 +235,11 @@
   "top": 1999,
   "roomCount": 48,
   "mobCount": 27,
-  "file": "zones/24-celestian-s-jungle-top-pyramid.json"
+  "file": "zones/24-celestian-s-jungle-top-pyramid.json",
+  "links": {
+   "23": 1,
+   "25": 1
+  }
  },
  {
   "id": 25,
@@ -159,7 +248,11 @@
   "top": 2099,
   "roomCount": 24,
   "mobCount": 7,
-  "file": "zones/25-celestian-s-lower-pyramid.json"
+  "file": "zones/25-celestian-s-lower-pyramid.json",
+  "links": {
+   "24": 1,
+   "80": 1
+  }
  },
  {
   "id": 26,
@@ -168,7 +261,13 @@
   "top": 2299,
   "roomCount": 78,
   "mobCount": 0,
-  "file": "zones/26-bandit-s-temple-check-empty.json"
+  "file": "zones/26-bandit-s-temple-check-empty.json",
+  "links": {
+   "10": 1,
+   "30": 1,
+   "31": 1,
+   "210": 1
+  }
  },
  {
   "id": 27,
@@ -177,7 +276,13 @@
   "top": 2700,
   "roomCount": 401,
   "mobCount": 144,
-  "file": "zones/27-stic-s-area.json"
+  "file": "zones/27-stic-s-area.json",
+  "links": {
+   "2": 1,
+   "10": 1,
+   "30": 2,
+   "120": 1
+  }
  },
  {
   "id": 28,
@@ -186,7 +291,8 @@
   "top": 2820,
   "roomCount": 26,
   "mobCount": 29,
-  "file": "zones/28-celestian-s-astral-zone.json"
+  "file": "zones/28-celestian-s-astral-zone.json",
+  "links": {}
  },
  {
   "id": 30,
@@ -195,7 +301,21 @@
   "top": 3099,
   "roomCount": 70,
   "mobCount": 49,
-  "file": "zones/30-northern-midgaard-main-city.json"
+  "file": "zones/30-northern-midgaard-main-city.json",
+  "links": {
+   "2": 1,
+   "3": 6,
+   "31": 1,
+   "32": 1,
+   "37": 1,
+   "60": 1,
+   "70": 5,
+   "80": 1,
+   "100": 1,
+   "190": 1,
+   "270": 1,
+   "1400": 1
+  }
  },
  {
   "id": 31,
@@ -204,7 +324,15 @@
   "top": 3199,
   "roomCount": 62,
   "mobCount": 19,
-  "file": "zones/31-southern-part-of-midgaard.json"
+  "file": "zones/31-southern-part-of-midgaard.json",
+  "links": {
+   "11": 1,
+   "30": 1,
+   "34": 1,
+   "60": 1,
+   "61": 1,
+   "79": 1
+  }
  },
  {
   "id": 32,
@@ -213,7 +341,11 @@
   "top": 3299,
   "roomCount": 6,
   "mobCount": 0,
-  "file": "zones/32-river-of-midgaard-empty.json"
+  "file": "zones/32-river-of-midgaard-empty.json",
+  "links": {
+   "30": 1,
+   "130": 2
+  }
  },
  {
   "id": 33,
@@ -222,7 +354,10 @@
   "top": 3399,
   "roomCount": 1,
   "mobCount": 0,
-  "file": "zones/33-buildings-in-midgaard-empty.json"
+  "file": "zones/33-buildings-in-midgaard-empty.json",
+  "links": {
+   "31": 1
+  }
  },
  {
   "id": 34,
@@ -231,7 +366,11 @@
   "top": 3499,
   "roomCount": 95,
   "mobCount": 52,
-  "file": "zones/34-ator-s-area.json"
+  "file": "zones/34-ator-s-area.json",
+  "links": {
+   "31": 1,
+   "247": 1
+  }
  },
  {
   "id": 37,
@@ -240,7 +379,14 @@
   "top": 3899,
   "roomCount": 127,
   "mobCount": 261,
-  "file": "zones/37-felix-s-arena-and-houses.json"
+  "file": "zones/37-felix-s-arena-and-houses.json",
+  "links": {
+   "30": 1,
+   "40": 1,
+   "151": 1,
+   "160": 1,
+   "180": 1
+  }
  },
  {
   "id": 40,
@@ -249,7 +395,14 @@
   "top": 4099,
   "roomCount": 50,
   "mobCount": 105,
-  "file": "zones/40-moria-level-1-2.json"
+  "file": "zones/40-moria-level-1-2.json",
+  "links": {
+   "37": 1,
+   "41": 2,
+   "66": 1,
+   "81": 1,
+   "192": 1
+  }
  },
  {
   "id": 41,
@@ -258,7 +411,10 @@
   "top": 4199,
   "roomCount": 26,
   "mobCount": 47,
-  "file": "zones/41-moria-level-3-4.json"
+  "file": "zones/41-moria-level-3-4.json",
+  "links": {
+   "40": 1
+  }
  },
  {
   "id": 42,
@@ -267,7 +423,8 @@
   "top": 4999,
   "roomCount": 278,
   "mobCount": 0,
-  "file": "zones/42-moria-extentions-scream-s-notdone.json"
+  "file": "zones/42-moria-extentions-scream-s-notdone.json",
+  "links": {}
  },
  {
   "id": 50,
@@ -276,7 +433,14 @@
   "top": 5099,
   "roomCount": 72,
   "mobCount": 28,
-  "file": "zones/50-the-great-eastern-desert.json"
+  "file": "zones/50-the-great-eastern-desert.json",
+  "links": {
+   "51": 1,
+   "52": 1,
+   "53": 1,
+   "130": 2,
+   "210": 1
+  }
  },
  {
   "id": 51,
@@ -285,7 +449,10 @@
   "top": 5199,
   "roomCount": 54,
   "mobCount": 80,
-  "file": "zones/51-drow-city.json"
+  "file": "zones/51-drow-city.json",
+  "links": {
+   "50": 1
+  }
  },
  {
   "id": 52,
@@ -294,7 +461,10 @@
   "top": 5299,
   "roomCount": 52,
   "mobCount": 36,
-  "file": "zones/52-the-city-of-thalos.json"
+  "file": "zones/52-the-city-of-thalos.json",
+  "links": {
+   "50": 1
+  }
  },
  {
   "id": 53,
@@ -303,7 +473,10 @@
   "top": 5399,
   "roomCount": 51,
   "mobCount": 50,
-  "file": "zones/53-great-pyramid.json"
+  "file": "zones/53-great-pyramid.json",
+  "links": {
+   "50": 2
+  }
  },
  {
   "id": 60,
@@ -312,7 +485,16 @@
   "top": 6099,
   "roomCount": 29,
   "mobCount": 9,
-  "file": "zones/60-haon-dor-light.json"
+  "file": "zones/60-haon-dor-light.json",
+  "links": {
+   "5": 1,
+   "8": 1,
+   "11": 1,
+   "30": 2,
+   "61": 1,
+   "62": 1,
+   "219": 1
+  }
  },
  {
   "id": 61,
@@ -321,7 +503,17 @@
   "top": 6199,
   "roomCount": 47,
   "mobCount": 18,
-  "file": "zones/61-haon-dor-dark.json"
+  "file": "zones/61-haon-dor-dark.json",
+  "links": {
+   "7": 1,
+   "31": 1,
+   "60": 1,
+   "130": 3,
+   "166": 7,
+   "170": 2,
+   "272": 1,
+   "15101": 1
+  }
  },
  {
   "id": 62,
@@ -330,7 +522,11 @@
   "top": 6221,
   "roomCount": 20,
   "mobCount": 20,
-  "file": "zones/62-quickland.json"
+  "file": "zones/62-quickland.json",
+  "links": {
+   "60": 1,
+   "63": 1
+  }
  },
  {
   "id": 63,
@@ -339,7 +535,18 @@
   "top": 6499,
   "roomCount": 149,
   "mobCount": 61,
-  "file": "zones/63-alun-s-area.json"
+  "file": "zones/63-alun-s-area.json",
+  "links": {
+   "10": 3,
+   "27": 1,
+   "30": 7,
+   "52": 1,
+   "62": 1,
+   "130": 1,
+   "250": 1,
+   "300": 1,
+   "1400": 1
+  }
  },
  {
   "id": 65,
@@ -348,7 +555,10 @@
   "top": 6599,
   "roomCount": 50,
   "mobCount": 54,
-  "file": "zones/65-the-dwarven-kingdom.json"
+  "file": "zones/65-the-dwarven-kingdom.json",
+  "links": {
+   "160": 1
+  }
  },
  {
   "id": 66,
@@ -357,7 +567,13 @@
   "top": 6700,
   "roomCount": 101,
   "mobCount": 50,
-  "file": "zones/66-prydain.json"
+  "file": "zones/66-prydain.json",
+  "links": {
+   "30": 1,
+   "31": 1,
+   "40": 1,
+   "139": 1
+  }
  },
  {
   "id": 68,
@@ -366,7 +582,11 @@
   "top": 6899,
   "roomCount": 80,
   "mobCount": 23,
-  "file": "zones/68-arctica.json"
+  "file": "zones/68-arctica.json",
+  "links": {
+   "94": 1,
+   "170": 1
+  }
  },
  {
   "id": 69,
@@ -375,7 +595,8 @@
   "top": 6999,
   "roomCount": 100,
   "mobCount": 0,
-  "file": "zones/69-newbie-immort-area.json"
+  "file": "zones/69-newbie-immort-area.json",
+  "links": {}
  },
  {
   "id": 70,
@@ -384,7 +605,11 @@
   "top": 7099,
   "roomCount": 62,
   "mobCount": 12,
-  "file": "zones/70-sewer.json"
+  "file": "zones/70-sewer.json",
+  "links": {
+   "30": 1,
+   "71": 7
+  }
  },
  {
   "id": 71,
@@ -393,7 +618,12 @@
   "top": 7199,
   "roomCount": 27,
   "mobCount": 10,
-  "file": "zones/71-secondsewer.json"
+  "file": "zones/71-secondsewer.json",
+  "links": {
+   "70": 4,
+   "72": 5,
+   "74": 1
+  }
  },
  {
   "id": 72,
@@ -402,7 +632,11 @@
   "top": 7399,
   "roomCount": 42,
   "mobCount": 23,
-  "file": "zones/72-sewermaze.json"
+  "file": "zones/72-sewermaze.json",
+  "links": {
+   "71": 3,
+   "250": 1
+  }
  },
  {
   "id": 74,
@@ -411,7 +645,10 @@
   "top": 7499,
   "roomCount": 46,
   "mobCount": 8,
-  "file": "zones/74-the-tunnels.json"
+  "file": "zones/74-the-tunnels.json",
+  "links": {
+   "71": 1
+  }
  },
  {
   "id": 75,
@@ -420,7 +657,10 @@
   "top": 7699,
   "roomCount": 3,
   "mobCount": 0,
-  "file": "zones/75-dalamar-s-moonshae-nd.json"
+  "file": "zones/75-dalamar-s-moonshae-nd.json",
+  "links": {
+   "3": 1
+  }
  },
  {
   "id": 79,
@@ -429,7 +669,10 @@
   "top": 7999,
   "roomCount": 20,
   "mobCount": 1,
-  "file": "zones/79-redferne-s-res-rework-this.json"
+  "file": "zones/79-redferne-s-res-rework-this.json",
+  "links": {
+   "31": 2
+  }
  },
  {
   "id": 80,
@@ -438,7 +681,11 @@
   "top": 8999,
   "roomCount": 3,
   "mobCount": 6,
-  "file": "zones/80-zodiac-s-zone.json"
+  "file": "zones/80-zodiac-s-zone.json",
+  "links": {
+   "25": 1,
+   "30": 1
+  }
  },
  {
   "id": 81,
@@ -447,7 +694,12 @@
   "top": 9199,
   "roomCount": 19,
   "mobCount": 0,
-  "file": "zones/81-valley-trail-sarge-s-area.json"
+  "file": "zones/81-valley-trail-sarge-s-area.json",
+  "links": {
+   "40": 1,
+   "82": 1,
+   "169": 1
+  }
  },
  {
   "id": 82,
@@ -456,7 +708,13 @@
   "top": 9400,
   "roomCount": 156,
   "mobCount": 177,
-  "file": "zones/82-hill-giant-smial.json"
+  "file": "zones/82-hill-giant-smial.json",
+  "links": {
+   "30": 3,
+   "81": 1,
+   "130": 1,
+   "151": 1
+  }
  },
  {
   "id": 94,
@@ -465,7 +723,11 @@
   "top": 9480,
   "roomCount": 78,
   "mobCount": 94,
-  "file": "zones/94-frost-giant-rift.json"
+  "file": "zones/94-frost-giant-rift.json",
+  "links": {
+   "68": 1,
+   "95": 3
+  }
  },
  {
   "id": 95,
@@ -474,7 +736,10 @@
   "top": 9600,
   "roomCount": 69,
   "mobCount": 138,
-  "file": "zones/95-frost-giant-rift-level-2.json"
+  "file": "zones/95-frost-giant-rift-level-2.json",
+  "links": {
+   "94": 4
+  }
  },
  {
   "id": 100,
@@ -483,7 +748,10 @@
   "top": 9699,
   "roomCount": 63,
   "mobCount": 63,
-  "file": "zones/100-celestian-s-spider-haunt.json"
+  "file": "zones/100-celestian-s-spider-haunt.json",
+  "links": {
+   "30": 1
+  }
  },
  {
   "id": 105,
@@ -492,7 +760,8 @@
   "top": 10899,
   "roomCount": 248,
   "mobCount": 37,
-  "file": "zones/105-celestian-s-menzoberanzan.json"
+  "file": "zones/105-celestian-s-menzoberanzan.json",
+  "links": {}
  },
  {
   "id": 109,
@@ -501,7 +770,11 @@
   "top": 10999,
   "roomCount": 25,
   "mobCount": 25,
-  "file": "zones/109-the-temple-maze.json"
+  "file": "zones/109-the-temple-maze.json",
+  "links": {
+   "3": 1,
+   "30": 1
+  }
  },
  {
   "id": 110,
@@ -510,7 +783,10 @@
   "top": 11299,
   "roomCount": 64,
   "mobCount": 52,
-  "file": "zones/110-main-castle-python.json"
+  "file": "zones/110-main-castle-python.json",
+  "links": {
+   "151": 1
+  }
  },
  {
   "id": 120,
@@ -519,7 +795,11 @@
   "top": 12999,
   "roomCount": 55,
   "mobCount": 95,
-  "file": "zones/120-wert-s-area-notdone.json"
+  "file": "zones/120-wert-s-area-notdone.json",
+  "links": {
+   "3": 1,
+   "30": 1
+  }
  },
  {
   "id": 130,
@@ -528,7 +808,21 @@
   "top": 13699,
   "roomCount": 300,
   "mobCount": 188,
-  "file": "zones/130-new-thalos.json"
+  "file": "zones/130-new-thalos.json",
+  "links": {
+   "2": 1,
+   "32": 2,
+   "50": 2,
+   "61": 3,
+   "63": 1,
+   "139": 1,
+   "151": 1,
+   "160": 1,
+   "162": 2,
+   "164": 1,
+   "272": 1,
+   "15101": 1
+  }
  },
  {
   "id": 131,
@@ -537,7 +831,14 @@
   "top": 13713,
   "roomCount": 12,
   "mobCount": 21,
-  "file": "zones/131-graecia.json"
+  "file": "zones/131-graecia.json",
+  "links": {
+   "30": 2,
+   "132": 1,
+   "133": 1,
+   "170": 1,
+   "13799": 1
+  }
  },
  {
   "id": 132,
@@ -546,7 +847,10 @@
   "top": 13727,
   "roomCount": 14,
   "mobCount": 15,
-  "file": "zones/132-labors-of-hercules.json"
+  "file": "zones/132-labors-of-hercules.json",
+  "links": {
+   "131": 1
+  }
  },
  {
   "id": 133,
@@ -555,7 +859,14 @@
   "top": 13754,
   "roomCount": 27,
   "mobCount": 14,
-  "file": "zones/133-maze-small-check.json"
+  "file": "zones/133-maze-small-check.json",
+  "links": {
+   "30": 1,
+   "131": 2,
+   "137": 1,
+   "170": 1,
+   "200": 1
+  }
  },
  {
   "id": 137,
@@ -564,7 +875,11 @@
   "top": 13779,
   "roomCount": 25,
   "mobCount": 28,
-  "file": "zones/137-hades.json"
+  "file": "zones/137-hades.json",
+  "links": {
+   "130": 1,
+   "138": 1
+  }
  },
  {
   "id": 138,
@@ -573,7 +888,10 @@
   "top": 13798,
   "roomCount": 19,
   "mobCount": 7,
-  "file": "zones/138-mount-olympus.json"
+  "file": "zones/138-mount-olympus.json",
+  "links": {
+   "137": 1
+  }
  },
  {
   "id": 13799,
@@ -582,7 +900,11 @@
   "top": 13850,
   "roomCount": 52,
   "mobCount": 36,
-  "file": "zones/13799-graecian-quest.json"
+  "file": "zones/13799-graecian-quest.json",
+  "links": {
+   "131": 1,
+   "133": 1
+  }
  },
  {
   "id": 139,
@@ -591,7 +913,13 @@
   "top": 13999,
   "roomCount": 49,
   "mobCount": 1,
-  "file": "zones/139-forest-of-rhowyn-small-check.json"
+  "file": "zones/139-forest-of-rhowyn-small-check.json",
+  "links": {
+   "16": 1,
+   "66": 1,
+   "130": 1,
+   "218": 1
+  }
  },
  {
   "id": 140,
@@ -600,7 +928,12 @@
   "top": 14999,
   "roomCount": 176,
   "mobCount": 0,
-  "file": "zones/140-naril-s-zone.json"
+  "file": "zones/140-naril-s-zone.json",
+  "links": {
+   "2": 1,
+   "10": 1,
+   "30": 2
+  }
  },
  {
   "id": 151,
@@ -609,7 +942,14 @@
   "top": 15100,
   "roomCount": 6,
   "mobCount": 1,
-  "file": "zones/151-southern-lands-small-check.json"
+  "file": "zones/151-southern-lands-small-check.json",
+  "links": {
+   "6": 2,
+   "37": 1,
+   "110": 1,
+   "130": 1,
+   "15101": 1
+  }
  },
  {
   "id": 15101,
@@ -618,7 +958,16 @@
   "top": 15900,
   "roomCount": 100,
   "mobCount": 130,
-  "file": "zones/15101-skexie-palace.json"
+  "file": "zones/15101-skexie-palace.json",
+  "links": {
+   "61": 1,
+   "130": 1,
+   "151": 2,
+   "160": 6,
+   "169": 1,
+   "180": 1,
+   "200": 2
+  }
  },
  {
   "id": 160,
@@ -627,7 +976,17 @@
   "top": 16099,
   "roomCount": 162,
   "mobCount": 250,
-  "file": "zones/160-eastern-mountains.json"
+  "file": "zones/160-eastern-mountains.json",
+  "links": {
+   "30": 2,
+   "37": 1,
+   "65": 1,
+   "130": 1,
+   "162": 2,
+   "164": 1,
+   "240": 1,
+   "15101": 5
+  }
  },
  {
   "id": 164,
@@ -636,7 +995,12 @@
   "top": 16199,
   "roomCount": 52,
   "mobCount": 46,
-  "file": "zones/164-gypsy-village.json"
+  "file": "zones/164-gypsy-village.json",
+  "links": {
+   "130": 1,
+   "160": 1,
+   "300": 1
+  }
  },
  {
   "id": 162,
@@ -645,7 +1009,11 @@
   "top": 16299,
   "roomCount": 100,
   "mobCount": 62,
-  "file": "zones/162-undercaves-1.json"
+  "file": "zones/162-undercaves-1.json",
+  "links": {
+   "130": 2,
+   "160": 2
+  }
  },
  {
   "id": 166,
@@ -654,7 +1022,11 @@
   "top": 16645,
   "roomCount": 44,
   "mobCount": 61,
-  "file": "zones/166-the-heour.json"
+  "file": "zones/166-the-heour.json",
+  "links": {
+   "61": 6,
+   "180": 1
+  }
  },
  {
   "id": 169,
@@ -663,7 +1035,11 @@
   "top": 16999,
   "roomCount": 44,
   "mobCount": 35,
-  "file": "zones/169-lythcity.json"
+  "file": "zones/169-lythcity.json",
+  "links": {
+   "81": 1,
+   "15101": 1
+  }
  },
  {
   "id": 170,
@@ -672,7 +1048,12 @@
   "top": 17200,
   "roomCount": 79,
   "mobCount": 23,
-  "file": "zones/170-white-plume-mountain.json"
+  "file": "zones/170-white-plume-mountain.json",
+  "links": {
+   "61": 2,
+   "68": 1,
+   "131": 1
+  }
  },
  {
   "id": 175,
@@ -681,7 +1062,12 @@
   "top": 17999,
   "roomCount": 207,
   "mobCount": 0,
-  "file": "zones/175-euphrate-s-not-done.json"
+  "file": "zones/175-euphrate-s-not-done.json",
+  "links": {
+   "2": 1,
+   "22": 1,
+   "140": 1
+  }
  },
  {
   "id": 180,
@@ -690,7 +1076,14 @@
   "top": 18999,
   "roomCount": 112,
   "mobCount": 91,
-  "file": "zones/180-darkenelf-s-area.json"
+  "file": "zones/180-darkenelf-s-area.json",
+  "links": {
+   "4": 1,
+   "37": 1,
+   "166": 1,
+   "210": 1,
+   "15101": 1
+  }
  },
  {
   "id": 190,
@@ -699,7 +1092,10 @@
   "top": 19199,
   "roomCount": 105,
   "mobCount": 38,
-  "file": "zones/190-alien-s-torture-keep.json"
+  "file": "zones/190-alien-s-torture-keep.json",
+  "links": {
+   "30": 1
+  }
  },
  {
   "id": 192,
@@ -708,7 +1104,10 @@
   "top": 19999,
   "roomCount": 54,
   "mobCount": 35,
-  "file": "zones/192-castle-mistamere.json"
+  "file": "zones/192-castle-mistamere.json",
+  "links": {
+   "40": 1
+  }
  },
  {
   "id": 200,
@@ -717,7 +1116,11 @@
   "top": 20099,
   "roomCount": 52,
   "mobCount": 32,
-  "file": "zones/200-arachnos.json"
+  "file": "zones/200-arachnos.json",
+  "links": {
+   "133": 1,
+   "15101": 1
+  }
  },
  {
   "id": 210,
@@ -726,7 +1129,12 @@
   "top": 21100,
   "roomCount": 63,
   "mobCount": 44,
-  "file": "zones/210-ershteep-road-and-city.json"
+  "file": "zones/210-ershteep-road-and-city.json",
+  "links": {
+   "26": 1,
+   "180": 1,
+   "211": 3
+  }
  },
  {
   "id": 211,
@@ -735,7 +1143,13 @@
   "top": 21199,
   "roomCount": 99,
   "mobCount": 56,
-  "file": "zones/211-mage-valley-entrance.json"
+  "file": "zones/211-mage-valley-entrance.json",
+  "links": {
+   "50": 2,
+   "210": 5,
+   "212": 6,
+   "216": 1
+  }
  },
  {
   "id": 212,
@@ -744,7 +1158,11 @@
   "top": 21268,
   "roomCount": 69,
   "mobCount": 77,
-  "file": "zones/212-troglodyte-caves.json"
+  "file": "zones/212-troglodyte-caves.json",
+  "links": {
+   "211": 5,
+   "216": 1
+  }
  },
  {
   "id": 216,
@@ -753,7 +1171,12 @@
   "top": 21350,
   "roomCount": 67,
   "mobCount": 134,
-  "file": "zones/216-abandoned-rhyodin-outpost.json"
+  "file": "zones/216-abandoned-rhyodin-outpost.json",
+  "links": {
+   "30": 1,
+   "211": 1,
+   "212": 3
+  }
  },
  {
   "id": 218,
@@ -762,7 +1185,10 @@
   "top": 21901,
   "roomCount": 88,
   "mobCount": 25,
-  "file": "zones/218-sauria.json"
+  "file": "zones/218-sauria.json",
+  "links": {
+   "139": 1
+  }
  },
  {
   "id": 219,
@@ -771,7 +1197,16 @@
   "top": 22699,
   "roomCount": 102,
   "mobCount": 100,
-  "file": "zones/219-the-elven-forest.json"
+  "file": "zones/219-the-elven-forest.json",
+  "links": {
+   "2": 1,
+   "3": 2,
+   "10": 2,
+   "27": 1,
+   "30": 6,
+   "60": 1,
+   "180": 1
+  }
  },
  {
   "id": 231,
@@ -780,7 +1215,11 @@
   "top": 23999,
   "roomCount": 54,
   "mobCount": 0,
-  "file": "zones/231-krell-s-area-not-done.json"
+  "file": "zones/231-krell-s-area-not-done.json",
+  "links": {
+   "60": 1,
+   "160": 1
+  }
  },
  {
   "id": 240,
@@ -789,7 +1228,11 @@
   "top": 24699,
   "roomCount": 113,
   "mobCount": 61,
-  "file": "zones/240-blackmouth-s-area.json"
+  "file": "zones/240-blackmouth-s-area.json",
+  "links": {
+   "30": 1,
+   "160": 1
+  }
  },
  {
   "id": 247,
@@ -798,7 +1241,11 @@
   "top": 24790,
   "roomCount": 31,
   "mobCount": 33,
-  "file": "zones/247-deadhame-upper.json"
+  "file": "zones/247-deadhame-upper.json",
+  "links": {
+   "34": 1,
+   "24791": 1
+  }
  },
  {
   "id": 24791,
@@ -807,7 +1254,10 @@
   "top": 24799,
   "roomCount": 9,
   "mobCount": 9,
-  "file": "zones/24791-deadhame-nether.json"
+  "file": "zones/24791-deadhame-nether.json",
+  "links": {
+   "247": 1
+  }
  },
  {
   "id": 249,
@@ -816,7 +1266,11 @@
   "top": 24999,
   "roomCount": 11,
   "mobCount": 0,
-  "file": "zones/249-goblin-marshes-nd.json"
+  "file": "zones/249-goblin-marshes-nd.json",
+  "links": {
+   "0": 1,
+   "30": 1
+  }
  },
  {
   "id": 250,
@@ -825,7 +1279,10 @@
   "top": 25100,
   "roomCount": 89,
   "mobCount": 42,
-  "file": "zones/250-the-abyss.json"
+  "file": "zones/250-the-abyss.json",
+  "links": {
+   "255": 1
+  }
  },
  {
   "id": 255,
@@ -834,7 +1291,10 @@
   "top": 25999,
   "roomCount": 51,
   "mobCount": 28,
-  "file": "zones/255-sinistrad-s-area.json"
+  "file": "zones/255-sinistrad-s-area.json",
+  "links": {
+   "250": 1
+  }
  },
  {
   "id": 260,
@@ -843,7 +1303,11 @@
   "top": 26999,
   "roomCount": 1,
   "mobCount": 0,
-  "file": "zones/260-alun-s-area-nd.json"
+  "file": "zones/260-alun-s-area-nd.json",
+  "links": {
+   "30": 1,
+   "164": 1
+  }
  },
  {
   "id": 270,
@@ -852,7 +1316,11 @@
   "top": 27199,
   "roomCount": 162,
   "mobCount": 173,
-  "file": "zones/270-tyr-s-zone.json"
+  "file": "zones/270-tyr-s-zone.json",
+  "links": {
+   "0": 1,
+   "30": 1
+  }
  },
  {
   "id": 272,
@@ -861,7 +1329,11 @@
   "top": 27999,
   "roomCount": 100,
   "mobCount": 117,
-  "file": "zones/272-the-land-down-under.json"
+  "file": "zones/272-the-land-down-under.json",
+  "links": {
+   "61": 1,
+   "130": 1
+  }
  },
  {
   "id": 290,
@@ -870,7 +1342,13 @@
   "top": 29999,
   "roomCount": 90,
   "mobCount": 0,
-  "file": "zones/290-empty-area.json"
+  "file": "zones/290-empty-area.json",
+  "links": {
+   "2": 1,
+   "10": 1,
+   "30": 1,
+   "63": 1
+  }
  },
  {
   "id": 300,
@@ -879,7 +1357,8 @@
   "top": 31799,
   "roomCount": 203,
   "mobCount": 71,
-  "file": "zones/300-celestian-s-ravenloft-area.json"
+  "file": "zones/300-celestian-s-ravenloft-area.json",
+  "links": {}
  },
  {
   "id": 353,
@@ -888,6 +1367,7 @@
   "top": 37300,
   "roomCount": 200,
   "mobCount": 0,
-  "file": "zones/353-mason-s-troll-moors-nd.json"
+  "file": "zones/353-mason-s-troll-moors-nd.json",
+  "links": {}
  }
 ]

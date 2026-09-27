@@ -444,9 +444,18 @@ def main():
             objProtos={v: obj_protos[v] for v in sorted(used_objs)},
         )
         (out_zones / filename).write_text(json.dumps(data, separators=(",", ":")), encoding="utf-8")
+        # Exits (and room teleports) into other zones, for the world overview.
+        links = {}
+        for room in zrooms:
+            targets = [e["toZone"] for e in room["exits"] if "toZone" in e]
+            if "toZone" in room.get("teleport", {}):
+                targets.append(room["teleport"]["toZone"])
+            for t in targets:
+                links[t] = links.get(t, 0) + 1
         index.append({
             "id": z["id"], "name": z["name"], "bottom": z["bottom"], "top": z["top"],
             "roomCount": len(zrooms), "mobCount": len(zspawns), "file": f"zones/{filename}",
+            "links": {str(k): v for k, v in sorted(links.items())},
         })
 
     (args.out / "zones.json").write_text(json.dumps(index, indent=1), encoding="utf-8")

@@ -108,6 +108,34 @@ body { background: var(--bg); color: var(--text); font: 14px/1.45 var(--font); }
   background: color-mix(in srgb, var(--panel) 88%, transparent);
 }
 .compass:hover { border-color: var(--accent); }
+.world-toggle {
+  position: absolute; top: 28px; right: 90px; z-index: 6; padding: 5px 11px; border-radius: 16px;
+  border: 1px solid var(--border); background: color-mix(in srgb, var(--panel) 88%, transparent);
+  color: var(--text); font: 600 12px var(--font); cursor: pointer;
+}
+.world-toggle:hover { border-color: var(--accent); }
+.world-toggle[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 28%, var(--panel)); }
+.world { position: absolute; inset: 0; z-index: 5; background: var(--bg); }
+.world[hidden] { display: none; }
+.world svg { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
+.world svg.dragging { cursor: grabbing; }
+.world-note { position: absolute; bottom: 10px; left: 14px; right: 14px; font-size: 12px; color: var(--muted); pointer-events: none; }
+.world .edge { stroke: var(--twoway); stroke-linecap: round; opacity: .55; }
+.world .node circle { fill: var(--panel-2); stroke: var(--muted); stroke-width: 1.2; }
+.world .node:hover circle { stroke: var(--accent); stroke-width: 2; }
+.world .node.current circle { fill: color-mix(in srgb, var(--accent) 45%, var(--panel-2)); stroke: var(--accent); stroke-width: 2; }
+.world .node { cursor: pointer; }
+.world .node text {
+  font-family: var(--font); font-size: calc(var(--world-px, 1px) * 11); fill: var(--text);
+  text-anchor: middle; pointer-events: none;
+  paint-order: stroke; stroke: var(--bg); stroke-width: calc(var(--world-px, 1px) * 3); stroke-linejoin: round;
+}
+.world .node.small text { fill: var(--muted); display: none; }
+.world .world-caption {
+  font-family: var(--font); font-size: calc(var(--world-px, 1px) * 11); fill: var(--muted);
+  text-anchor: middle; letter-spacing: .06em; text-transform: uppercase;
+}
+.world svg.zoomed .node.small text, .world .node.small:hover text, .world .node.current text { display: inline; }
 .floors {
   position: absolute; top: 86px; right: 20px; z-index: 2; width: 52px;
   display: flex; flex-direction: column; gap: 2px; padding: 4px;

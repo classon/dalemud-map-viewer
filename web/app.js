@@ -972,6 +972,195 @@ function selectMob(id, tab = null) {
   writeHash();
 }
 
+// ---------------------------------------------------------------- world overview
+// Zones as a force-directed graph: node area by room count, edges by the
+// number of exits between two zones. Laid out once, on first open.
+const worldEl = document.getElementById('world');
+const worldSvg = document.getElementById('world-svg');
+const worldToggle = document.getElementById('world-toggle');
+const SVG_NS = 'http://www.w3.org/2000/svg';
+let worldGraph = null;
+let worldView = null; // SVG viewBox as { x, y, w, h }
+
+function layoutWorld() {
+  const nodes = state.index.map((z, i) => {
+    const a = (i / state.index.length) * Math.PI * 2; // deterministic start on a circle
+    return { z, x: Math.cos(a) * 300, y: Math.sin(a) * 300, vx: 0, vy: 0, r: 5 + Math.sqrt(z.roomCount) * 1.3 };
+  });
+  const byId = new Map(nodes.map((n) => [n.z.id, n]));
+  const weights = new Map();
+  for (const n of nodes) {
+    for (const [to, count] of Object.entries(n.z.links ?? {})) {
+      const m = byId.get(Number(to));
+      if (!m || m === n) continue;
+      const key = n.z.id < m.z.id ? `${n.z.id}-${m.z.id}` : `${m.z.id}-${n.z.id}`;
+      weights.set(key, (weights.get(key) ?? 0) + count);
+    }
+  }
+  const edges = [...weights].map(([key, w]) => {
+    const [a, b] = key.split('-').map(Number);
+    return { a: byId.get(a), b: byId.get(b), w };
+  });
+  for (const { a, b } of edges) { a.degree = (a.degree ?? 0) + 1; b.degree = (b.degree ?? 0) + 1; }
+  // Zones with no exits to others would float anywhere; lay them out in a
+  // row under the graph instead.
+  const linked = nodes.filter((n) => n.degree);
+  const unlinked = nodes.filter((n) => !n.degree);
+  // Simple spring embedder: all nodes repel, linked nodes attract, a weak
+  // pull toward the centre keeps unlinked zones from drifting off.
+  for (let step = 0, heat = 1; step < 500; step++, heat *= 0.992) {
+    for (let i = 0; i < linked.length; i++) {
+      for (let j = i + 1; j < linked.length; j++) {
+        const p = linked[i], q = linked[j];
+        let dx = p.x - q.x, dy = p.y - q.y;
+        const d2 = Math.max(dx * dx + dy * dy, 1);
+        const minD = p.r + q.r + 40;
+        const f = (9000 / d2) + (d2 < minD * minD ? 3 : 0);
+        const d = Math.sqrt(d2);
+        dx /= d; dy /= d;
+        p.vx += dx * f; p.vy += dy * f; q.vx -= dx * f; q.vy -= dy * f;
+      }
+    }
+    for (const { a, b } of edges) {
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const d = Math.max(Math.hypot(dx, dy), 1);
+      const f = (d - (a.r + b.r + 70)) * 0.015;
+      a.vx += (dx / d) * f; a.vy += (dy / d) * f; b.vx -= (dx / d) * f; b.vy -= (dy / d) * f;
+    }
+    for (const n of linked) {
+      n.vx -= n.x * 0.003; n.vy -= n.y * 0.003;
+      const v = Math.hypot(n.vx, n.vy), cap = 20 * heat + 0.5;
+      if (v > cap) { n.vx *= cap / v; n.vy *= cap / v; }
+      n.x += n.vx; n.y += n.vy;
+      n.vx *= 0.5; n.vy *= 0.5;
+    }
+  }
+  const minX = Math.min(...linked.map((n) => n.x - n.r));
+  const maxX = Math.max(...linked.map((n) => n.x + n.r));
+  const rowY = Math.max(...linked.map((n) => n.y + n.r)) + 110;
+  const gap = unlinked.length > 1 ? Math.max(120, (maxX - minX) / (unlinked.length - 1)) : 0;
+  unlinked.forEach((n, i) => {
+    n.x = unlinked.length > 1 ? minX + i * gap : (minX + maxX) / 2;
+    n.y = rowY;
+  });
+  const caption = unlinked.length ? { x: (minX + maxX) / 2, y: rowY - 45 } : null;
+  return { nodes, edges, caption };
+}
+
+function svgEl(tag, attrs) {
+  const el = document.createElementNS(SVG_NS, tag);
+  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+  return el;
+}
+
+function renderWorld() {
+  worldGraph ??= layoutWorld();
+  const { nodes, edges } = worldGraph;
+  worldSvg.replaceChildren();
+  const edgeGroup = svgEl('g', {});
+  for (const { a, b, w } of edges) {
+    edgeGroup.append(svgEl('line', {
+      class: 'edge', x1: a.x, y1: a.y, x2: b.x, y2: b.y, 'stroke-width': (1 + Math.log2(w) * 0.9).toFixed(2),
+    }));
+  }
+  const nodeGroup = svgEl('g', {});
+  for (const n of nodes) {
+    const g = svgEl('g', {
+      class: `node${n.z.id === state.zone?.id ? ' current' : ''}${n.z.roomCount < 30 ? ' small' : ''}`,
+      'data-zone': n.z.id, transform: `translate(${n.x.toFixed(1)} ${n.y.toFixed(1)})`,
+    });
+    const title = svgEl('title', {});
+    title.textContent = `${n.z.name} · ${n.z.roomCount} rooms · ${n.z.mobCount ?? 0} mobs`;
+    g.append(title, svgEl('circle', { r: n.r.toFixed(1) }));
+    const label = svgEl('text', { y: n.r.toFixed(1), dy: '1.1em' });
+    label.textContent = n.z.name;
+    g.append(label);
+    nodeGroup.append(g);
+  }
+  worldSvg.append(edgeGroup, nodeGroup);
+  if (worldGraph.caption) {
+    const t = svgEl('text', { class: 'world-caption', x: worldGraph.caption.x, y: worldGraph.caption.y });
+    t.textContent = 'Not linked to other zones';
+    worldSvg.append(t);
+  }
+  if (!worldView) {
+    const padX = 130, padY = 60; // labels reach well past their nodes sideways
+    const xs = nodes.map((n) => n.x), ys = nodes.map((n) => n.y);
+    worldView = {
+      x: Math.min(...xs) - padX, y: Math.min(...ys) - padY,
+      w: Math.max(...xs) - Math.min(...xs) + padX * 2, h: Math.max(...ys) - Math.min(...ys) + padY * 2,
+    };
+  }
+  applyWorldView();
+}
+
+// SVG units per screen pixel. The viewBox keeps its aspect ratio, centred in
+// the element (xMidYMid meet), so the tighter axis sets the scale.
+function worldScale() {
+  return Math.max(worldView.w / worldSvg.clientWidth, worldView.h / worldSvg.clientHeight);
+}
+
+// Labels keep a constant on-screen size; small zones' labels appear once
+// zoomed in far enough for them to have room.
+function applyWorldView() {
+  const { x, y, w, h } = worldView;
+  worldSvg.setAttribute('viewBox', `${x} ${y} ${w} ${h}`);
+  const scale = worldScale();
+  worldSvg.style.setProperty('--world-px', `${scale}px`);
+  worldSvg.classList.toggle('zoomed', scale < 0.9);
+}
+
+function setWorldOpen(open) {
+  worldEl.hidden = !open;
+  worldToggle.setAttribute('aria-pressed', String(open));
+  worldToggle.textContent = open ? 'Back to zone' : 'World map';
+  if (open) renderWorld();
+}
+
+worldToggle.addEventListener('click', () => setWorldOpen(worldEl.hidden));
+
+// Pan by dragging, zoom around the pointer with the wheel. A press that
+// doesn't move counts as a click on the zone under it.
+let worldDrag = null;
+worldSvg.addEventListener('pointerdown', (e) => {
+  worldDrag = { x: e.clientX, y: e.clientY, view: { ...worldView }, moved: false };
+  worldSvg.setPointerCapture(e.pointerId);
+});
+worldSvg.addEventListener('pointermove', (e) => {
+  if (!worldDrag) return;
+  const dx = e.clientX - worldDrag.x, dy = e.clientY - worldDrag.y;
+  if (Math.hypot(dx, dy) > 4) worldDrag.moved = true;
+  if (!worldDrag.moved) return;
+  worldSvg.classList.add('dragging');
+  const scale = worldScale();
+  worldView.x = worldDrag.view.x - dx * scale;
+  worldView.y = worldDrag.view.y - dy * scale;
+  applyWorldView();
+});
+worldSvg.addEventListener('pointerup', (e) => {
+  const drag = worldDrag;
+  worldDrag = null;
+  worldSvg.classList.remove('dragging');
+  if (!drag || drag.moved) return;
+  const node = document.elementFromPoint(e.clientX, e.clientY)?.closest('.node');
+  if (!node) return;
+  setWorldOpen(false);
+  goTo(Number(node.dataset.zone), null).catch(showError);
+});
+worldSvg.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const rect = worldSvg.getBoundingClientRect();
+  const scale = worldScale();
+  const px = worldView.x + worldView.w / 2 + (e.clientX - rect.left - rect.width / 2) * scale;
+  const py = worldView.y + worldView.h / 2 + (e.clientY - rect.top - rect.height / 2) * scale;
+  const k = Math.exp(e.deltaY * 0.0015);
+  worldView = { x: px - (px - worldView.x) * k, y: py - (py - worldView.y) * k, w: worldView.w * k, h: worldView.h * k };
+  applyWorldView();
+}, { passive: false });
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !worldEl.hidden && !credits.open) setWorldOpen(false);
+});
+
 // ---------------------------------------------------------------- numpad walking
 // Numpad keys follow the selected room's exits like the game's movement
 // commands. event.code names the physical key, so NumLock doesn't matter.
@@ -1035,6 +1224,7 @@ async function loadZone(id) {
 }
 
 async function goTo(zoneId, vnum, mobId = null, mobTab = null) {
+  if (!worldEl.hidden) setWorldOpen(false);
   if (!state.zonesById.has(zoneId)) zoneId = state.index[0].id;
   if (state.zone?.id !== zoneId) {
     const zone = await loadZone(zoneId);

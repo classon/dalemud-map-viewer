@@ -80,6 +80,11 @@ or `&item=<vnum>` opens a mob or item from the search tabs.
 | Red stub | Exit to a room that doesn't exist |
 | Tan / red plate | Door / secret door, on the side of the room it belongs to |
 
+Death traps are crimson cubes; peaceful and no-magic rooms get green and cyan
+outlines. In zones with several floors, the floor buttons under the compass show
+one floor at a time. The **World map** button shows every zone as a graph linked
+by the exits between them.
+
 Room cube colour is the sector type (city, forest, water…). Mob markers sit on
 top of their room: blue is good, yellow neutral, red evil (alignment ±350),
 and a diamond instead of a ball means the mob is aggressive.
