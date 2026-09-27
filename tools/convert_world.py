@@ -210,8 +210,9 @@ def layout(rooms):
     # Seed from the best-connected room so the main area grows from its
     # centre, then pick up any disconnected islands.
     seeds = sorted(rooms, key=lambda r: (-len(neighbours[r["vnum"]]), r["vnum"]))
+    placed = set()
     for seed in seeds:
-        if seed["vnum"] in pos:
+        if seed["vnum"] in placed:
             continue
         local = {seed["vnum"]: (0, 0, 0)}
         occupied = {(0, 0, 0): seed["vnum"]}
@@ -220,7 +221,7 @@ def layout(rooms):
             v = queue.popleft()
             x, y, z = local[v]
             for _, _, t, (dx, dy, dz) in neighbours[v]:
-                if t in local or t in pos:
+                if t in local:
                     continue
                 k = 1
                 while (x + dx * k, y + dy * k, z + dz * k) in occupied:
@@ -230,6 +231,7 @@ def layout(rooms):
                 occupied[cell] = t
                 queue.append(t)
         components.append(local)
+        placed.update(local)
 
     # Pack components side by side along x, largest first, with a gap.
     components.sort(key=len, reverse=True)
