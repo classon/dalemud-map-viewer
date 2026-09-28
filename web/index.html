@@ -65,8 +65,9 @@
       <div id="viewport" class="viewport"></div>
       <button id="world-toggle" class="world-toggle" type="button" aria-pressed="false">World map</button>
       <div id="world" class="world" hidden>
-        <svg id="world-svg" role="img" aria-label="Zones and the exits between them"></svg>
-        <div class="world-note">Zones sized by rooms, linked by exits between them · click a zone to open it · drag to pan · scroll to zoom · Esc to close</div>
+        <div class="world-title">World map <small>zones sized by rooms, linked by the exits between them</small></div>
+        <div id="world-labels" class="world-labels"></div>
+        <div class="world-note">Hover a zone to trace its links · click to open it · drag to orbit · right-drag to pan · scroll to zoom · Esc to close</div>
       </div>
       <div id="floors" class="floors" role="group" aria-label="Floors" hidden></div>
       <div id="tooltip" class="tooltip" hidden></div>

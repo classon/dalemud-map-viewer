@@ -20,6 +20,7 @@
   --peaceful: #4cd18c;
   --nomagic: #38bdf8;
   --player: #ff8a1f;
+  --world-node: #8b93a1;
   --grid-major: #39404c;
   --grid-minor: #242933;
   --title-shadow: 0 1px 3px #000;
@@ -49,6 +50,7 @@
   --peaceful: #169b55;
   --nomagic: #0284c7;
   --player: #f26b00;
+  --world-node: #8a94a3;
   --grid-major: #b9c1cd;
   --grid-minor: #d9dee6;
   --title-shadow: 0 1px 2px #fff;
@@ -117,27 +119,22 @@ body { background: var(--bg); color: var(--text); font: 14px/1.45 var(--font); }
 }
 .world-toggle:hover { border-color: var(--accent); }
 .world-toggle[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 28%, var(--panel)); }
-.world { position: absolute; inset: 0; z-index: 5; background: var(--bg); }
+.world { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
 .world[hidden] { display: none; }
-.world svg { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
-.world svg.dragging { cursor: grabbing; }
-.world-note { position: absolute; bottom: 10px; left: 14px; right: 14px; font-size: 12px; color: var(--muted); pointer-events: none; }
-.world .edge { stroke: var(--twoway); stroke-linecap: round; opacity: .55; }
-.world .node circle { fill: var(--panel-2); stroke: var(--muted); stroke-width: 1.2; }
-.world .node:hover circle { stroke: var(--accent); stroke-width: 2; }
-.world .node.current circle { fill: color-mix(in srgb, var(--accent) 45%, var(--panel-2)); stroke: var(--accent); stroke-width: 2; }
-.world .node { cursor: pointer; }
-.world .node text {
-  font-family: var(--font); font-size: calc(var(--world-px, 1px) * 11); fill: var(--text);
-  text-anchor: middle; pointer-events: none;
-  paint-order: stroke; stroke: var(--bg); stroke-width: calc(var(--world-px, 1px) * 3); stroke-linejoin: round;
+.world-title { position: absolute; top: 12px; left: 14px; font-weight: 600; font-size: 16px; text-shadow: var(--title-shadow); }
+.world-title small { color: var(--muted); font-weight: 400; margin-left: 6px; }
+.world-note { position: absolute; bottom: 10px; left: 14px; right: 14px; font-size: 12px; color: var(--muted); }
+.world-labels { position: absolute; inset: 0; overflow: hidden; }
+.world-label {
+  position: absolute; left: 0; top: 0; white-space: nowrap; font-size: 11px; color: var(--text);
+  text-shadow: 0 0 3px var(--bg), 0 0 3px var(--bg), 0 0 3px var(--bg); transition: opacity .15s;
 }
-.world .node.small text { fill: var(--muted); display: none; }
-.world .world-caption {
-  font-family: var(--font); font-size: calc(var(--world-px, 1px) * 11); fill: var(--muted);
-  text-anchor: middle; letter-spacing: .06em; text-transform: uppercase;
-}
-.world svg.zoomed .node.small text, .world .node.small:hover text, .world .node.current text { display: inline; }
+.world-label.hot { font-weight: 600; }
+.world-label.current { color: var(--player); font-weight: 600; }
+.world-label.faded { opacity: .25; }
+.world-caption { color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-size: 10px; }
+.map.world-mode .map-title, .map.world-mode .legend, .map.world-mode .hint,
+.map.world-mode .compass, .map.world-mode .floors { display: none; }
 .floors {
   position: absolute; top: 86px; right: 20px; z-index: 2; width: 52px;
   display: flex; flex-direction: column; gap: 2px; padding: 4px;
@@ -200,7 +197,7 @@ body { background: var(--bg); color: var(--text); font: 14px/1.45 var(--font); }
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 .tooltip {
-  position: absolute; z-index: 3; pointer-events: none; padding: 4px 8px;
+  position: absolute; z-index: 7; pointer-events: none; padding: 4px 8px;
   background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px;
   font-size: 12px; white-space: nowrap;
 }

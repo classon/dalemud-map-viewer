@@ -21,7 +21,7 @@ const SECTOR_COLORS = {
 const cssVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(`--${name}`).trim();
 const COLOR_KEYS = [
   'twoway', 'oneway', 'warp', 'teleport', 'external', 'door', 'secret', 'accent', 'bg', 'grid-major', 'grid-minor',
-  'mob-good', 'mob-neutral', 'mob-evil', 'death', 'peaceful', 'nomagic', 'player',
+  'mob-good', 'mob-neutral', 'mob-evil', 'death', 'peaceful', 'nomagic', 'player', 'world-node',
 ];
 const COLORS = {};
 function readColors() {
@@ -211,6 +211,10 @@ document.getElementById('compass').addEventListener('click', () => {
 });
 
 renderer.setAnimationLoop((time) => {
+  if (worldOpen) {
+    renderWorldFrame();
+    return;
+  }
   controls.update();
   updateCompass();
   animateSelection(time);
@@ -538,6 +542,7 @@ function applyTheme(theme) {
     if (key) obj.material.color.copy(COLORS[key]);
   });
   for (const m of [...Object.values(mobMaterials), deathMaterial]) m.emissive.copy(m.color);
+  document.dispatchEvent(new Event('themechange'));
   buildGrid();
 }
 
@@ -568,10 +573,26 @@ function pick(event) {
   return hit?.object ?? null;
 }
 
+// Show the tooltip by the pointer, flipping to the left or above it when it
+// would run off the map pane.
+function showTooltipAt(e) {
+  tooltip.hidden = false;
+  const rect = viewport.getBoundingClientRect();
+  let x = e.clientX - rect.left + 14, y = e.clientY - rect.top + 12;
+  if (x + tooltip.offsetWidth > rect.width - 4) x = e.clientX - rect.left - tooltip.offsetWidth - 10;
+  if (y + tooltip.offsetHeight > rect.height - 4) y = e.clientY - rect.top - tooltip.offsetHeight - 10;
+  tooltip.style.left = `${Math.max(4, x)}px`;
+  tooltip.style.top = `${Math.max(4, y)}px`;
+}
+
 let downAt = null;
 renderer.domElement.addEventListener('pointerdown', (e) => { downAt = [e.clientX, e.clientY]; });
 renderer.domElement.addEventListener('pointerup', (e) => {
   if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 5) return;
+  if (worldOpen) {
+    worldClick(e);
+    return;
+  }
   const obj = pick(e);
   if (!obj) return;
   const { vnum, external, zone, missing, mobId } = obj.userData;
@@ -584,10 +605,15 @@ renderer.domElement.addEventListener('pointerup', (e) => {
   }
 });
 renderer.domElement.addEventListener('dblclick', (e) => {
+  if (worldOpen) return;
   const obj = pick(e);
   if (obj && !obj.userData.external) controls.target.copy(obj.position);
 });
 renderer.domElement.addEventListener('pointermove', (e) => {
+  if (worldOpen) {
+    worldPointerMove(e);
+    return;
+  }
   const obj = pick(e);
   renderer.domElement.style.cursor = obj ? 'pointer' : '';
   if (!obj) { tooltip.hidden = true; return; }
@@ -604,10 +630,7 @@ renderer.domElement.addEventListener('pointermove', (e) => {
   else if (missing) text = `Exit to #${vnum} (room does not exist)`;
   else text = `→ #${vnum} in ${state.zonesById.get(zone)?.name ?? `zone ${zone}`}`;
   tooltip.textContent = text;
-  tooltip.hidden = false;
-  const rect = viewport.getBoundingClientRect();
-  tooltip.style.left = `${e.clientX - rect.left + 14}px`;
-  tooltip.style.top = `${e.clientY - rect.top + 12}px`;
+  showTooltipAt(e);
 });
 renderer.domElement.addEventListener('pointerleave', () => { tooltip.hidden = true; });
 
@@ -1000,192 +1023,286 @@ function selectMob(id, tab = null) {
 }
 
 // ---------------------------------------------------------------- world overview
-// Zones as a force-directed graph: node area by room count, edges by the
-// number of exits between two zones. Laid out once, on first open.
-const worldEl = document.getElementById('world');
-const worldSvg = document.getElementById('world-svg');
-const worldToggle = document.getElementById('world-toggle');
-const SVG_NS = 'http://www.w3.org/2000/svg';
+// Zones as a 3D force-directed graph, drawn with the same renderer but its own
+// scene and camera: spheres sized by room count, rods weighted by the number of
+// exits between two zones. Depth gives the graph far more room than a flat
+// layout; links are faint until you hover a zone, which lights up its own
+// links and neighbours and fades the rest.
+const worldEl = $('#world');
+const worldLabels = $('#world-labels');
+const worldToggle = $('#world-toggle');
+const mapPane = document.querySelector('.map');
+
+const worldScene = new THREE.Scene();
+worldScene.add(new THREE.HemisphereLight(0xdde6ff, 0x20242c, 1.2));
+const worldSun = new THREE.DirectionalLight(0xffffff, 1.3);
+worldSun.position.set(0.5, 1, 0.7);
+worldScene.add(worldSun);
+const worldCamera = new THREE.PerspectiveCamera(45, 1, 1, 20000);
+const worldControls = new OrbitControls(worldCamera, renderer.domElement);
+worldControls.enabled = false;
+worldControls.enableDamping = true;
+worldControls.dampingFactor = 0.12;
+new ResizeObserver(() => {
+  const { clientWidth: w, clientHeight: h } = viewport;
+  if (w && h) { worldCamera.aspect = w / h; worldCamera.updateProjectionMatrix(); }
+}).observe(viewport);
+
+const worldMaterials = {
+  node: themed(new THREE.MeshStandardMaterial({ roughness: 0.6 }), 'world-node'),
+  current: themed(new THREE.MeshStandardMaterial({ roughness: 0.4, emissiveIntensity: 0.45 }), 'player'),
+  hot: themed(new THREE.MeshStandardMaterial({ roughness: 0.4, emissiveIntensity: 0.35 }), 'accent'),
+  faded: themed(new THREE.MeshStandardMaterial({ roughness: 0.6, transparent: true, opacity: 0.15, depthWrite: false }), 'world-node'),
+  edge: themed(new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.2, depthWrite: false }), 'twoway'),
+  edgeHot: themed(new THREE.MeshBasicMaterial(), 'accent'),
+  edgeFaded: themed(new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.04, depthWrite: false }), 'twoway'),
+};
+
+function rethemeWorld() {
+  worldScene.traverse((obj) => {
+    const key = obj.material?.userData.colorKey;
+    if (key) obj.material.color.copy(COLORS[key]);
+  });
+  for (const m of Object.values(worldMaterials)) {
+    m.color.copy(COLORS[m.userData.colorKey]);
+    if (m.emissive) m.emissive.copy(m.color);
+  }
+  worldMaterials.node.emissive.setRGB(0, 0, 0);
+  worldMaterials.faded.emissive.setRGB(0, 0, 0);
+}
+document.addEventListener('themechange', rethemeWorld);
+
+let worldOpen = false;
 let worldGraph = null;
-let worldView = null; // SVG viewBox as { x, y, w, h }
+let worldHover = null;
 
 function layoutWorld() {
+  const count = state.index.length;
   const nodes = state.index.map((z, i) => {
-    const a = (i / state.index.length) * Math.PI * 2; // deterministic start on a circle
-    return { z, x: Math.cos(a) * 300, y: Math.sin(a) * 300, vx: 0, vy: 0, r: 5 + Math.sqrt(z.roomCount) * 1.3 };
+    // Deterministic start: points spread evenly over a sphere (golden spiral).
+    const y = 1 - (2 * (i + 0.5)) / count, ring = Math.sqrt(1 - y * y), a = i * 2.399963;
+    return {
+      z, edges: [], r: 4 + Math.sqrt(z.roomCount) * 1.1,
+      pos: new THREE.Vector3(Math.cos(a) * ring * 300, y * 300, Math.sin(a) * ring * 300), vel: new THREE.Vector3(),
+    };
   });
   const byId = new Map(nodes.map((n) => [n.z.id, n]));
   const weights = new Map();
   for (const n of nodes) {
-    for (const [to, count] of Object.entries(n.z.links ?? {})) {
+    for (const [to, c] of Object.entries(n.z.links ?? {})) {
       const m = byId.get(Number(to));
       if (!m || m === n) continue;
       const key = n.z.id < m.z.id ? `${n.z.id}-${m.z.id}` : `${m.z.id}-${n.z.id}`;
-      weights.set(key, (weights.get(key) ?? 0) + count);
+      weights.set(key, (weights.get(key) ?? 0) + c);
     }
   }
   const edges = [...weights].map(([key, w]) => {
     const [a, b] = key.split('-').map(Number);
-    return { a: byId.get(a), b: byId.get(b), w };
+    const e = { a: byId.get(a), b: byId.get(b), w };
+    e.a.edges.push(e);
+    e.b.edges.push(e);
+    return e;
   });
-  for (const { a, b } of edges) { a.degree = (a.degree ?? 0) + 1; b.degree = (b.degree ?? 0) + 1; }
-  // Zones with no exits to others would float anywhere; lay them out in a
-  // row under the graph instead.
-  const linked = nodes.filter((n) => n.degree);
-  const unlinked = nodes.filter((n) => !n.degree);
-  // Simple spring embedder: all nodes repel, linked nodes attract, a weak
-  // pull toward the centre keeps unlinked zones from drifting off.
+  const linked = nodes.filter((n) => n.edges.length);
+  const unlinked = nodes.filter((n) => !n.edges.length);
+
+  // Spring embedder in 3D: every pair repels, linked zones attract, and a weak
+  // pull toward the centre keeps the cluster together.
+  const d = new THREE.Vector3();
   for (let step = 0, heat = 1; step < 500; step++, heat *= 0.992) {
     for (let i = 0; i < linked.length; i++) {
       for (let j = i + 1; j < linked.length; j++) {
         const p = linked[i], q = linked[j];
-        let dx = p.x - q.x, dy = p.y - q.y;
-        const d2 = Math.max(dx * dx + dy * dy, 1);
-        const minD = p.r + q.r + 40;
-        const f = (9000 / d2) + (d2 < minD * minD ? 3 : 0);
-        const d = Math.sqrt(d2);
-        dx /= d; dy /= d;
-        p.vx += dx * f; p.vy += dy * f; q.vx -= dx * f; q.vy -= dy * f;
+        d.subVectors(p.pos, q.pos);
+        const d2 = Math.max(d.lengthSq(), 1);
+        const minD = p.r + q.r + 25;
+        const f = 9000 / d2 + (d2 < minD * minD ? 3 : 0);
+        d.multiplyScalar(f / Math.sqrt(d2));
+        p.vel.add(d);
+        q.vel.sub(d);
       }
     }
     for (const { a, b } of edges) {
-      const dx = b.x - a.x, dy = b.y - a.y;
-      const d = Math.max(Math.hypot(dx, dy), 1);
-      const f = (d - (a.r + b.r + 70)) * 0.015;
-      a.vx += (dx / d) * f; a.vy += (dy / d) * f; b.vx -= (dx / d) * f; b.vy -= (dy / d) * f;
+      d.subVectors(b.pos, a.pos);
+      const len = Math.max(d.length(), 1);
+      d.multiplyScalar(((len - (a.r + b.r + 45)) * 0.015) / len);
+      a.vel.add(d);
+      b.vel.sub(d);
     }
     for (const n of linked) {
-      n.vx -= n.x * 0.003; n.vy -= n.y * 0.003;
-      const v = Math.hypot(n.vx, n.vy), cap = 20 * heat + 0.5;
-      if (v > cap) { n.vx *= cap / v; n.vy *= cap / v; }
-      n.x += n.vx; n.y += n.vy;
-      n.vx *= 0.5; n.vy *= 0.5;
+      n.vel.addScaledVector(n.pos, -0.004);
+      const cap = 20 * heat + 0.5;
+      if (n.vel.length() > cap) n.vel.setLength(cap);
+      n.pos.add(n.vel);
+      n.vel.multiplyScalar(0.5);
     }
   }
-  const minX = Math.min(...linked.map((n) => n.x - n.r));
-  const maxX = Math.max(...linked.map((n) => n.x + n.r));
-  const rowY = Math.max(...linked.map((n) => n.y + n.r)) + 110;
-  const gap = unlinked.length > 1 ? Math.max(120, (maxX - minX) / (unlinked.length - 1)) : 0;
+
+  // Zones linked to nothing go on a ring under the cluster.
+  const box = new THREE.Box3().setFromPoints(linked.map((n) => n.pos));
+  const center = box.getCenter(new THREE.Vector3());
+  const ringY = box.min.y - 140;
+  const ringR = Math.max(90, (unlinked.length * 70) / (2 * Math.PI));
   unlinked.forEach((n, i) => {
-    n.x = unlinked.length > 1 ? minX + i * gap : (minX + maxX) / 2;
-    n.y = rowY;
+    const a = (i / unlinked.length) * Math.PI * 2;
+    n.pos.set(center.x + Math.cos(a) * ringR, ringY, center.z + Math.sin(a) * ringR);
   });
-  const caption = unlinked.length ? { x: (minX + maxX) / 2, y: rowY - 45 } : null;
+  const caption = unlinked.length ? new THREE.Vector3(center.x, ringY + 45, center.z) : null;
   return { nodes, edges, caption };
 }
 
-function svgEl(tag, attrs) {
-  const el = document.createElementNS(SVG_NS, tag);
-  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
-  return el;
-}
-
-function renderWorld() {
-  worldGraph ??= layoutWorld();
-  const { nodes, edges } = worldGraph;
-  worldSvg.replaceChildren();
-  const edgeGroup = svgEl('g', {});
-  for (const { a, b, w } of edges) {
-    edgeGroup.append(svgEl('line', {
-      class: 'edge', x1: a.x, y1: a.y, x2: b.x, y2: b.y, 'stroke-width': (1 + Math.log2(w) * 0.9).toFixed(2),
-    }));
+function buildWorld() {
+  worldGraph = layoutWorld();
+  const sphere = new THREE.SphereGeometry(1, 24, 16);
+  const rod = new THREE.CylinderGeometry(1, 1, 1, 8, 1, true);
+  for (const n of worldGraph.nodes) {
+    n.mesh = new THREE.Mesh(sphere, worldMaterials.node);
+    n.mesh.position.copy(n.pos);
+    n.mesh.scale.setScalar(n.r);
+    n.mesh.userData.node = n;
+    worldScene.add(n.mesh);
+    n.label = document.createElement('div');
+    n.label.className = 'world-label';
+    n.label.textContent = n.z.name;
+    worldLabels.append(n.label);
   }
-  const nodeGroup = svgEl('g', {});
-  for (const n of nodes) {
-    const g = svgEl('g', {
-      class: `node${n.z.id === state.zone?.id ? ' current' : ''}${n.z.roomCount < 30 ? ' small' : ''}`,
-      'data-zone': n.z.id, transform: `translate(${n.x.toFixed(1)} ${n.y.toFixed(1)})`,
-    });
-    const title = svgEl('title', {});
-    title.textContent = `${n.z.name} · ${n.z.roomCount} rooms · ${n.z.mobCount ?? 0} mobs`;
-    g.append(title, svgEl('circle', { r: n.r.toFixed(1) }));
-    const label = svgEl('text', { y: n.r.toFixed(1), dy: '1.1em' });
-    label.textContent = n.z.name;
-    g.append(label);
-    nodeGroup.append(g);
+  const up = new THREE.Vector3(0, 1, 0);
+  for (const e of worldGraph.edges) {
+    const dir = e.b.pos.clone().sub(e.a.pos);
+    const len = dir.length();
+    const width = 0.5 + Math.log2(e.w) * 0.45;
+    e.mesh = new THREE.Mesh(rod, worldMaterials.edge);
+    e.mesh.position.copy(e.a.pos).addScaledVector(dir, 0.5);
+    e.mesh.quaternion.setFromUnitVectors(up, dir.normalize());
+    e.mesh.scale.set(width, len, width);
+    worldScene.add(e.mesh);
   }
-  worldSvg.append(edgeGroup, nodeGroup);
   if (worldGraph.caption) {
-    const t = svgEl('text', { class: 'world-caption', x: worldGraph.caption.x, y: worldGraph.caption.y });
-    t.textContent = 'Not linked to other zones';
-    worldSvg.append(t);
+    worldGraph.captionLabel = document.createElement('div');
+    worldGraph.captionLabel.className = 'world-label world-caption';
+    worldGraph.captionLabel.textContent = 'Not linked to other zones';
+    worldLabels.append(worldGraph.captionLabel);
   }
-  if (!worldView) {
-    const padX = 130, padY = 60; // labels reach well past their nodes sideways
-    const xs = nodes.map((n) => n.x), ys = nodes.map((n) => n.y);
-    worldView = {
-      x: Math.min(...xs) - padX, y: Math.min(...ys) - padY,
-      w: Math.max(...xs) - Math.min(...xs) + padX * 2, h: Math.max(...ys) - Math.min(...ys) + padY * 2,
-    };
-  }
-  applyWorldView();
+  rethemeWorld();
+  fitWorldCamera();
 }
 
-// SVG units per screen pixel. The viewBox keeps its aspect ratio, centred in
-// the element (xMidYMid meet), so the tighter axis sets the scale.
-function worldScale() {
-  return Math.max(worldView.w / worldSvg.clientWidth, worldView.h / worldSvg.clientHeight);
+function fitWorldCamera() {
+  const center = new THREE.Box3().setFromPoints(worldGraph.nodes.map((n) => n.pos)).getCenter(new THREE.Vector3());
+  const radius = Math.max(...worldGraph.nodes.map((n) => n.pos.distanceTo(center) + n.r));
+  const vHalf = THREE.MathUtils.degToRad(worldCamera.fov / 2);
+  const half = Math.min(vHalf, Math.atan(Math.tan(vHalf) * worldCamera.aspect));
+  const dist = radius / Math.sin(half);
+  worldControls.target.copy(center);
+  worldCamera.position.copy(center).addScaledVector(new THREE.Vector3(0, 0.35, 1).normalize(), dist);
 }
 
-// Labels keep a constant on-screen size; small zones' labels appear once
-// zoomed in far enough for them to have room.
-function applyWorldView() {
-  const { x, y, w, h } = worldView;
-  worldSvg.setAttribute('viewBox', `${x} ${y} ${w} ${h}`);
-  const scale = worldScale();
-  worldSvg.style.setProperty('--world-px', `${scale}px`);
-  worldSvg.classList.toggle('zoomed', scale < 0.9);
+// Hovering a zone highlights it, its neighbours and the links between them.
+function applyWorldHighlight() {
+  const focus = worldHover;
+  const near = focus ? new Set([focus, ...focus.edges.map((e) => (e.a === focus ? e.b : e.a))]) : null;
+  for (const n of worldGraph.nodes) {
+    const current = n.z.id === state.zone?.id;
+    const inFocus = !near || near.has(n);
+    n.mesh.material = current ? worldMaterials.current
+      : n === focus ? worldMaterials.hot : inFocus ? worldMaterials.node : worldMaterials.faded;
+    // Label priority: current zone, hovered zone, its neighbours, then size.
+    n.priority = (current ? 3e6 : 0) + (n === focus ? 2e6 : 0) + (near?.has(n) ? 1e6 : 0) + n.z.roomCount;
+    n.labelHidden = !inFocus;
+    n.label.classList.toggle('current', current);
+    n.label.classList.toggle('hot', Boolean(near?.has(n)));
+    n.label.classList.toggle('faded', !inFocus);
+  }
+  for (const e of worldGraph.edges) {
+    e.mesh.material = !focus ? worldMaterials.edge
+      : e.a === focus || e.b === focus ? worldMaterials.edgeHot : worldMaterials.edgeFaded;
+  }
+}
+
+// HTML labels follow their spheres. Each frame they're placed in priority
+// order and any label that would overlap one already placed is skipped, so
+// zooming in makes room for more of them.
+const labelPos = new THREE.Vector3();
+function updateWorldLabels() {
+  const w = viewport.clientWidth, h = viewport.clientHeight;
+  const placed = [];
+  const tryPlace = (el, pos, width, force = false) => {
+    labelPos.copy(pos).project(worldCamera);
+    const x = ((labelPos.x + 1) / 2) * w, y = ((1 - labelPos.y) / 2) * h;
+    const rect = { l: x - width / 2 - 3, r: x + width / 2 + 3, t: y - 1, b: y + 15 };
+    const fits = labelPos.z < 1 && (force || !placed.some((p) => rect.l < p.r && rect.r > p.l && rect.t < p.b && rect.b > p.t));
+    el.style.display = fits ? '' : 'none';
+    if (fits) {
+      el.style.transform = `translate(${x}px, ${y}px) translate(-50%, 0)`;
+      placed.push(rect);
+    }
+  };
+  if (worldGraph.captionLabel) tryPlace(worldGraph.captionLabel, worldGraph.caption, 170, true);
+  const order = [...worldGraph.nodes].sort((a, b) => b.priority - a.priority);
+  for (const n of order) {
+    if (n.labelHidden) {
+      n.label.style.display = 'none';
+      continue;
+    }
+    n.labelWidth ??= n.z.name.length * 6.3 + 4;
+    labelPos.copy(n.pos);
+    labelPos.y -= n.r * 1.15;
+    tryPlace(n.label, labelPos.clone(), n.labelWidth, n.priority >= 3e6);
+  }
+}
+
+function renderWorldFrame() {
+  worldControls.update();
+  updateWorldLabels();
+  renderer.render(worldScene, worldCamera);
+}
+
+function worldPick(event) {
+  const rect = renderer.domElement.getBoundingClientRect();
+  pointer.set(((event.clientX - rect.left) / rect.width) * 2 - 1, -((event.clientY - rect.top) / rect.height) * 2 + 1);
+  raycaster.setFromCamera(pointer, worldCamera);
+  return raycaster.intersectObjects(worldGraph.nodes.map((n) => n.mesh), false)[0]?.object.userData.node ?? null;
+}
+
+function worldPointerMove(e) {
+  const node = worldPick(e);
+  renderer.domElement.style.cursor = node ? 'pointer' : '';
+  if (node !== worldHover) {
+    worldHover = node;
+    applyWorldHighlight();
+  }
+  if (!node) { tooltip.hidden = true; return; }
+  tooltip.textContent = `${node.z.name} · ${node.z.roomCount} rooms · ${node.z.mobCount ?? 0} mobs · linked to ${node.edges.length} zone${node.edges.length === 1 ? '' : 's'}`;
+  showTooltipAt(e);
+}
+
+function worldClick(e) {
+  const node = worldPick(e);
+  if (!node) return;
+  setWorldOpen(false);
+  goTo(node.z.id, null).catch(showError);
 }
 
 function setWorldOpen(open) {
+  worldOpen = open;
   worldEl.hidden = !open;
+  mapPane.classList.toggle('world-mode', open);
   worldToggle.setAttribute('aria-pressed', String(open));
   worldToggle.textContent = open ? 'Back to zone' : 'World map';
-  if (open) renderWorld();
+  controls.enabled = !open;
+  worldControls.enabled = open;
+  tooltip.hidden = true;
+  renderer.domElement.style.cursor = '';
+  if (open) {
+    if (!worldGraph) buildWorld();
+    worldHover = null;
+    applyWorldHighlight();
+  }
 }
 
-worldToggle.addEventListener('click', () => setWorldOpen(worldEl.hidden));
-
-// Pan by dragging, zoom around the pointer with the wheel. A press that
-// doesn't move counts as a click on the zone under it.
-let worldDrag = null;
-worldSvg.addEventListener('pointerdown', (e) => {
-  worldDrag = { x: e.clientX, y: e.clientY, view: { ...worldView }, moved: false };
-  worldSvg.setPointerCapture(e.pointerId);
-});
-worldSvg.addEventListener('pointermove', (e) => {
-  if (!worldDrag) return;
-  const dx = e.clientX - worldDrag.x, dy = e.clientY - worldDrag.y;
-  if (Math.hypot(dx, dy) > 4) worldDrag.moved = true;
-  if (!worldDrag.moved) return;
-  worldSvg.classList.add('dragging');
-  const scale = worldScale();
-  worldView.x = worldDrag.view.x - dx * scale;
-  worldView.y = worldDrag.view.y - dy * scale;
-  applyWorldView();
-});
-worldSvg.addEventListener('pointerup', (e) => {
-  const drag = worldDrag;
-  worldDrag = null;
-  worldSvg.classList.remove('dragging');
-  if (!drag || drag.moved) return;
-  const node = document.elementFromPoint(e.clientX, e.clientY)?.closest('.node');
-  if (!node) return;
-  setWorldOpen(false);
-  goTo(Number(node.dataset.zone), null).catch(showError);
-});
-worldSvg.addEventListener('wheel', (e) => {
-  e.preventDefault();
-  const rect = worldSvg.getBoundingClientRect();
-  const scale = worldScale();
-  const px = worldView.x + worldView.w / 2 + (e.clientX - rect.left - rect.width / 2) * scale;
-  const py = worldView.y + worldView.h / 2 + (e.clientY - rect.top - rect.height / 2) * scale;
-  const k = Math.exp(e.deltaY * 0.0015);
-  worldView = { x: px - (px - worldView.x) * k, y: py - (py - worldView.y) * k, w: worldView.w * k, h: worldView.h * k };
-  applyWorldView();
-}, { passive: false });
+worldToggle.addEventListener('click', () => setWorldOpen(!worldOpen));
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && !worldEl.hidden && !credits.open) setWorldOpen(false);
+  if (e.key === 'Escape' && worldOpen && !credits.open) setWorldOpen(false);
 });
 
 // ---------------------------------------------------------------- numpad walking
@@ -1233,7 +1350,7 @@ function walk(dir) {
 
 document.addEventListener('keydown', (e) => {
   const dir = NUMPAD_DIRS[e.code];
-  if (dir == null || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (dir == null || e.ctrlKey || e.metaKey || e.altKey || worldOpen) return;
   if (e.target instanceof Element && e.target.closest('input, textarea, select, [contenteditable]')) return;
   if (credits.open) return;
   e.preventDefault();
@@ -1251,7 +1368,7 @@ async function loadZone(id) {
 }
 
 async function goTo(zoneId, vnum, mobId = null, mobTab = null) {
-  if (!worldEl.hidden) setWorldOpen(false);
+  if (worldOpen) setWorldOpen(false);
   if (!state.zonesById.has(zoneId)) zoneId = state.index[0].id;
   if (state.zone?.id !== zoneId) {
     const zone = await loadZone(zoneId);
