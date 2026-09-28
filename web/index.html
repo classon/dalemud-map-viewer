@@ -40,6 +40,12 @@
           <button role="tab" data-side="items" aria-selected="false">Items</button>
         </div>
         <input id="zone-filter" type="search" placeholder="Filter zones…" autocomplete="off" aria-label="Search">
+        <div id="zone-sort" class="zone-sort" role="group" aria-label="Sort zones">
+          <span>Sort</span>
+          <button type="button" data-sort="name">Name</button>
+          <button type="button" data-sort="level">Level</button>
+          <button type="button" data-sort="rooms">Rooms</button>
+        </div>
       </header>
       <ul id="zone-list" class="zone-list"></ul>
       <ul id="search-list" class="zone-list search-list" hidden></ul>

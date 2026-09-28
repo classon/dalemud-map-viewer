@@ -88,6 +88,15 @@ body { background: var(--bg); color: var(--text); font: 14px/1.45 var(--font); }
   width: 100%; padding: 6px 8px; border-radius: 6px;
   border: 1px solid var(--border); background: var(--panel-2); color: var(--text);
 }
+.zone-sort { display: flex; align-items: center; gap: 2px; margin-top: 8px; font-size: 12px; color: var(--muted); }
+.zone-sort[hidden] { display: none; }
+.zone-sort > span { margin-right: 4px; }
+.zone-sort button {
+  border: 0; border-radius: 5px; padding: 2px 7px; background: none; color: var(--muted);
+  font: inherit; cursor: pointer;
+}
+.zone-sort button:hover { color: var(--text); background: var(--panel-2); }
+.zone-sort button[aria-pressed="true"] { color: var(--text); background: color-mix(in srgb, var(--accent) 22%, transparent); font-weight: 600; }
 
 .zone-list { list-style: none; margin: 0; padding: 6px; overflow-y: auto; flex: 1; }
 .zone-list li button {

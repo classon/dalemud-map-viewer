@@ -1520,6 +1520,7 @@ function setSide(side) {
   zoneFilter.placeholder = PLACEHOLDERS[side];
   for (const b of document.querySelectorAll('[data-side]')) b.setAttribute('aria-selected', String(b.dataset.side === side));
   zoneList.hidden = side !== 'zones';
+  zoneSortEl.hidden = side !== 'zones';
   searchList.hidden = side === 'zones';
   searchStatus.hidden = side === 'zones';
   if (side === 'zones') renderZoneList();
@@ -1589,9 +1590,56 @@ searchList.addEventListener('click', (e) => {
   else showInfo(b.dataset.result, Number(b.dataset.vnum));
 });
 
+// Zone list sorting: by name (ignoring a leading "The"), level range, or room
+// count. Clicking the active option reverses it. Zones with no level data
+// always sort last by level. The choice is remembered in this browser.
+const zoneSortEl = $('#zone-sort');
+const SORT_DEFAULT_DESC = { name: false, level: false, rooms: true };
+const zoneSort = { key: 'name', desc: false };
+try {
+  Object.assign(zoneSort, JSON.parse(localStorage.getItem('zoneSort')) ?? {});
+} catch { /* storage unavailable or corrupt: keep the default */ }
+if (!(zoneSort.key in SORT_DEFAULT_DESC)) Object.assign(zoneSort, { key: 'name', desc: false });
+
+const sortName = (z) => z.name.replace(/^the\s+/i, '');
+const nameOrder = (a, b) => sortName(a).localeCompare(sortName(b), undefined, { sensitivity: 'base', numeric: true });
+const SORTERS = {
+  name: nameOrder,
+  rooms: (a, b) => a.roomCount - b.roomCount || nameOrder(a, b),
+  level: (a, b) => a.levels.min - b.levels.min
+    || (a.levels.max ?? a.levels.min + 15) - (b.levels.max ?? b.levels.min + 15) || nameOrder(a, b),
+};
+
+function sortedZones(zones) {
+  const dir = zoneSort.desc ? -1 : 1;
+  const withData = zoneSort.key === 'level' ? zones.filter((z) => z.levels) : [...zones];
+  withData.sort((a, b) => dir * SORTERS[zoneSort.key](a, b));
+  if (zoneSort.key !== 'level') return withData;
+  return withData.concat(zones.filter((z) => !z.levels).sort(nameOrder));
+}
+
+function updateSortButtons() {
+  for (const b of zoneSortEl.querySelectorAll('button')) {
+    const active = b.dataset.sort === zoneSort.key;
+    b.setAttribute('aria-pressed', String(active));
+    b.textContent = b.dataset.sort[0].toUpperCase() + b.dataset.sort.slice(1) + (active ? (zoneSort.desc ? ' ↓' : ' ↑') : '');
+  }
+}
+
+zoneSortEl.addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-sort]');
+  if (!b) return;
+  if (b.dataset.sort === zoneSort.key) zoneSort.desc = !zoneSort.desc;
+  else Object.assign(zoneSort, { key: b.dataset.sort, desc: SORT_DEFAULT_DESC[b.dataset.sort] });
+  try { localStorage.setItem('zoneSort', JSON.stringify(zoneSort)); } catch { /* not persisted */ }
+  updateSortButtons();
+  renderZoneList();
+});
+updateSortButtons();
+
 function renderZoneList() {
   const q = zoneFilter.value.trim().toLowerCase();
-  zoneList.innerHTML = state.index
+  zoneList.innerHTML = sortedZones(state.index)
     .filter((z) => !q || z.name.toLowerCase().includes(q) || String(z.id) === q)
     .map((z) => `<li><button data-zone="${z.id}" class="${z.id === state.zone?.id ? 'active' : ''}" title="Rooms #${z.bottom}–${z.top}">
         <span>${esc(z.name)}</span><span class="zone-meta">${levelChip(z.levels)}<span class="count">${z.roomCount}</span></span></button></li>`)
