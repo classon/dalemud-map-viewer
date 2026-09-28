@@ -28,6 +28,7 @@ from dale_entities import (
     replay_resets, write_catalog,
 )
 from dale_reader import Reader
+from zone_levels import advertised_levels, estimated_levels
 
 DIR_NAMES = ["north", "east", "south", "west", "up", "down"]
 OPPOSITE = [2, 3, 0, 1, 5, 4]
@@ -394,6 +395,7 @@ def main():
             obj_loads.setdefault(inst["obj"], []).append(where)
             note_objects(inst.get("contents", []), zone_id, room, holder, f"in {obj_protos[inst['obj']]['name']}")
 
+    advertised = advertised_levels()
     index = []
     for z in zones:
         zrooms = zone_rooms[z["id"]]
@@ -457,6 +459,10 @@ def main():
             "roomCount": len(zrooms), "mobCount": len(zspawns), "file": f"zones/{filename}",
             "links": {str(k): v for k, v in sorted(links.items())},
         })
+        levels = advertised.get(z["id"]) or estimated_levels(
+            [mob_protos[s["mob"]].get("level", 0) for s in zspawns])
+        if levels:
+            index[-1]["levels"] = levels
 
     (args.out / "zones.json").write_text(json.dumps(index, indent=1), encoding="utf-8")
     # Room names and descriptions for the viewer's room search.

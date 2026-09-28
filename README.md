@@ -83,7 +83,11 @@ or `&item=<vnum>` opens a mob or item from the search tabs.
 Death traps are crimson cubes; peaceful and no-magic rooms get green and cyan
 outlines. In zones with several floors, the floor buttons under the compass show
 one floor at a time. The **World map** button shows every zone as a graph linked
-by the exits between them.
+by the exits between them, coloured by level range.
+
+Zone level ranges come from the game's `HELP AREAS` table where it names the
+zone (matched by hand in `tools/zone_levels.py`); other zones get an estimate
+from the middle half of their mob levels, shown with a `~`.
 
 Room cube colour is the sector type (city, forest, water…). Mob markers sit on
 top of their room: blue is good, yellow neutral, red evil (alignment ±350),

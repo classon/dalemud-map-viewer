@@ -108,6 +108,36 @@ function sectorMaterial(sector) {
 // Mobs are colored by alignment (the game's IS_GOOD/IS_EVIL cut-offs) and
 // aggressive ones get a spiky shape.
 const alignKind = (a) => (a >= 350 ? 'good' : a <= -350 ? 'evil' : 'neutral');
+
+// Zone level ranges (from the game's HELP AREAS, or estimated from mob levels)
+// map onto green → yellow → orange → red by the middle of the range. Zones open
+// to every level, and zones without data, stay neutral.
+const LEVEL_STOPS = [[1, '#3fb950'], [15, '#d9c12b'], [30, '#f0882a'], [45, '#e5484d']]
+  .map(([level, hex]) => [level, new THREE.Color(hex)]);
+function levelColor(levels) {
+  if (!levels) return null;
+  const max = levels.max ?? levels.min + 15; // "45+" and the like
+  if (levels.min <= 1 && max >= 50) return null;
+  const mid = (levels.min + Math.min(max, 60)) / 2;
+  if (mid <= LEVEL_STOPS[0][0]) return LEVEL_STOPS[0][1].clone();
+  for (let i = 1; i < LEVEL_STOPS.length; i++) {
+    const [l1, c1] = LEVEL_STOPS[i];
+    if (mid <= l1) {
+      const [l0, c0] = LEVEL_STOPS[i - 1];
+      return c0.clone().lerp(c1, (mid - l0) / (l1 - l0));
+    }
+  }
+  return LEVEL_STOPS[LEVEL_STOPS.length - 1][1].clone();
+}
+const levelSource = (levels) => (levels.source === 'help'
+  ? "advertised in the game's HELP AREAS"
+  : 'estimated from the levels of the mobs that load there (middle half)');
+function levelChip(levels) {
+  if (!levels) return '';
+  const color = levelColor(levels);
+  return `<span class="lvl${color ? '' : ' lvl-any'}"${color ? ` style="--lvl:#${color.getHexString()}"` : ''}
+    title="Levels ${esc(levels.text.replace('~', ''))}, ${levelSource(levels)}">${esc(levels.text)}</span>`;
+}
 const MOB_SIZE = 0.13;
 const mobGeometry = new THREE.SphereGeometry(MOB_SIZE, 14, 10);
 const aggroGeometry = new THREE.OctahedronGeometry(MOB_SIZE * 1.45);
@@ -1050,13 +1080,31 @@ new ResizeObserver(() => {
 
 const worldMaterials = {
   node: themed(new THREE.MeshStandardMaterial({ roughness: 0.6 }), 'world-node'),
-  current: themed(new THREE.MeshStandardMaterial({ roughness: 0.4, emissiveIntensity: 0.45 }), 'player'),
   hot: themed(new THREE.MeshStandardMaterial({ roughness: 0.4, emissiveIntensity: 0.35 }), 'accent'),
   faded: themed(new THREE.MeshStandardMaterial({ roughness: 0.6, transparent: true, opacity: 0.15, depthWrite: false }), 'world-node'),
   edge: themed(new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.2, depthWrite: false }), 'twoway'),
   edgeHot: themed(new THREE.MeshBasicMaterial(), 'accent'),
   edgeFaded: themed(new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.04, depthWrite: false }), 'twoway'),
 };
+
+// One material per level colour; zones without one use the neutral node colour.
+const levelMaterials = new Map();
+function zoneMaterial(z) {
+  const color = levelColor(z.levels);
+  if (!color) return worldMaterials.node;
+  const key = color.getHexString();
+  if (!levelMaterials.has(key)) levelMaterials.set(key, new THREE.MeshStandardMaterial({ color, roughness: 0.55 }));
+  return levelMaterials.get(key);
+}
+
+// The current zone keeps its level colour and gets an orange halo, like the
+// room marker on the zone map.
+const worldHalo = new THREE.Mesh(
+  new THREE.SphereGeometry(1, 24, 16),
+  themed(new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.35, depthWrite: false }), 'player'),
+);
+worldHalo.visible = false;
+worldScene.add(worldHalo);
 
 function rethemeWorld() {
   worldScene.traverse((obj) => {
@@ -1156,13 +1204,13 @@ function buildWorld() {
   const sphere = new THREE.SphereGeometry(1, 24, 16);
   const rod = new THREE.CylinderGeometry(1, 1, 1, 8, 1, true);
   for (const n of worldGraph.nodes) {
-    n.mesh = new THREE.Mesh(sphere, worldMaterials.node);
+    n.mesh = new THREE.Mesh(sphere, zoneMaterial(n.z));
     n.mesh.position.copy(n.pos);
     n.mesh.scale.setScalar(n.r);
     n.mesh.userData.node = n;
     worldScene.add(n.mesh);
     n.label = document.createElement('div');
-    n.label.className = 'world-label';
+    n.label.className = 'world-label off'; // fades in once placed
     n.label.textContent = n.z.name;
     worldLabels.append(n.label);
   }
@@ -1179,7 +1227,7 @@ function buildWorld() {
   }
   if (worldGraph.caption) {
     worldGraph.captionLabel = document.createElement('div');
-    worldGraph.captionLabel.className = 'world-label world-caption';
+    worldGraph.captionLabel.className = 'world-label world-caption off';
     worldGraph.captionLabel.textContent = 'Not linked to other zones';
     worldLabels.append(worldGraph.captionLabel);
   }
@@ -1200,12 +1248,17 @@ function fitWorldCamera() {
 // Hovering a zone highlights it, its neighbours and the links between them.
 function applyWorldHighlight() {
   const focus = worldHover;
+  worldHalo.visible = false;
   const near = focus ? new Set([focus, ...focus.edges.map((e) => (e.a === focus ? e.b : e.a))]) : null;
   for (const n of worldGraph.nodes) {
     const current = n.z.id === state.zone?.id;
     const inFocus = !near || near.has(n);
-    n.mesh.material = current ? worldMaterials.current
-      : n === focus ? worldMaterials.hot : inFocus ? worldMaterials.node : worldMaterials.faded;
+    n.mesh.material = n === focus ? worldMaterials.hot : inFocus ? zoneMaterial(n.z) : worldMaterials.faded;
+    if (current) {
+      worldHalo.visible = true;
+      worldHalo.position.copy(n.pos);
+      worldHalo.scale.setScalar(n.r * 1.6 + 3);
+    }
     // Label priority: current zone, hovered zone, its neighbours, then size.
     n.priority = (current ? 3e6 : 0) + (n === focus ? 2e6 : 0) + (near?.has(n) ? 1e6 : 0) + n.z.roomCount;
     n.labelHidden = !inFocus;
@@ -1297,7 +1350,8 @@ function worldPointerMove(e) {
   renderer.domElement.style.cursor = node ? 'pointer' : '';
   scheduleWorldHover(node);
   if (!node) { tooltip.hidden = true; return; }
-  tooltip.textContent = `${node.z.name} · ${node.z.roomCount} rooms · ${node.z.mobCount ?? 0} mobs · linked to ${node.edges.length} zone${node.edges.length === 1 ? '' : 's'}`;
+  const lv = node.z.levels ? ` · levels ${node.z.levels.text}` : '';
+  tooltip.textContent = `${node.z.name}${lv} · ${node.z.roomCount} rooms · ${node.z.mobCount ?? 0} mobs · linked to ${node.edges.length} zone${node.edges.length === 1 ? '' : 's'}`;
   showTooltipAt(e);
 }
 
@@ -1399,7 +1453,9 @@ async function goTo(zoneId, vnum, mobId = null, mobTab = null) {
     const zone = await loadZone(zoneId);
     state.zone = zone;
     buildZone(zone);
-    mapTitle.innerHTML = `${esc(zone.name)}<small>#${zone.bottom}–${zone.top} · ${zone.rooms.length} rooms</small>`;
+    const levels = state.zonesById.get(zoneId)?.levels;
+    mapTitle.innerHTML = `${esc(zone.name)}<small>#${zone.bottom}–${zone.top} · ${zone.rooms.length} rooms${
+      levels ? ` · levels ${esc(levels.text)}` : ''}</small>`;
     for (const btn of zoneList.querySelectorAll('button')) {
       btn.classList.toggle('active', Number(btn.dataset.zone) === zoneId);
     }
@@ -1538,7 +1594,7 @@ function renderZoneList() {
   zoneList.innerHTML = state.index
     .filter((z) => !q || z.name.toLowerCase().includes(q) || String(z.id) === q)
     .map((z) => `<li><button data-zone="${z.id}" class="${z.id === state.zone?.id ? 'active' : ''}" title="Rooms #${z.bottom}–${z.top}">
-        <span>${esc(z.name)}</span><span class="count">${z.roomCount}</span></button></li>`)
+        <span>${esc(z.name)}</span><span class="zone-meta">${levelChip(z.levels)}<span class="count">${z.roomCount}</span></span></button></li>`)
     .join('');
 }
 zoneFilter.addEventListener('input', () => {

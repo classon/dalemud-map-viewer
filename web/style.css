@@ -97,7 +97,14 @@ body { background: var(--bg); color: var(--text); font: 14px/1.45 var(--font); }
 }
 .zone-list li button:hover { background: var(--panel-2); }
 .zone-list li button.active { background: color-mix(in srgb, var(--accent) 22%, transparent); }
-.zone-list .count { color: var(--muted); font-variant-numeric: tabular-nums; }
+.zone-list .count { color: var(--muted); font-variant-numeric: tabular-nums; min-width: 22px; text-align: right; }
+.zone-meta { display: flex; align-items: center; gap: 6px; flex: none; }
+.lvl {
+  font-size: 10px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap;
+  padding: 0 5px; border-radius: 8px; line-height: 16px; color: var(--text);
+  background: color-mix(in srgb, var(--lvl) 24%, transparent); border: 1px solid color-mix(in srgb, var(--lvl) 60%, transparent);
+}
+.lvl.lvl-any { background: none; border-color: var(--border); color: var(--muted); }
 
 .map { position: relative; background: var(--bg); }
 .viewport { position: absolute; inset: 0; }
@@ -123,6 +130,15 @@ body { background: var(--bg); color: var(--text); font: 14px/1.45 var(--font); }
 .world[hidden] { display: none; }
 .world-title { position: absolute; top: 12px; left: 14px; font-weight: 600; font-size: 16px; text-shadow: var(--title-shadow); }
 .world-title small { color: var(--muted); font-weight: 400; margin-left: 6px; }
+.world-legend {
+  position: absolute; bottom: 32px; left: 14px; display: flex; align-items: center; gap: 8px;
+  font-size: 11px; color: var(--muted);
+}
+.lvl-scale { display: inline-flex; flex-direction: column; gap: 1px; width: 150px; }
+.lvl-bar { height: 7px; border-radius: 4px; background: linear-gradient(90deg, #3fb950 0%, #d9c12b 31%, #f0882a 66%, #e5484d 100%); }
+.lvl-ticks { display: flex; justify-content: space-between; font-size: 9px; }
+.lvl-any-dot, .halo-dot { width: 10px; height: 10px; border-radius: 50%; margin-left: 6px; background: var(--world-node); }
+.halo-dot { background: none; border: 2px solid var(--player); }
 .world-note { position: absolute; bottom: 10px; left: 14px; right: 14px; font-size: 12px; color: var(--muted); }
 .world-labels { position: absolute; inset: 0; overflow: hidden; }
 .world-label {
