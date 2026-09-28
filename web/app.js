@@ -389,7 +389,8 @@ function renderFloors(zone) {
   for (const r of zone.rooms) counts.set(r.pos[1], (counts.get(r.pos[1]) ?? 0) + 1);
   const levels = [...counts.keys()].sort((a, b) => b - a);
   floorsEl.hidden = levels.length < 2;
-  floorsEl.innerHTML = `<button data-level="" title="Show every floor">All</button>`
+  floorsEl.innerHTML = `<div class="floors-label" title="Show one floor of this zone at a time">Floors</div>`
+    + `<button data-level="" title="Show every floor">All</button>`
     + levels.map((y) => `<button data-level="${y}" title="Floor ${y} · ${counts.get(y)} rooms">${y > 0 ? '+' : ''}${y}</button>`).join('');
   updateFloorButtons();
 }

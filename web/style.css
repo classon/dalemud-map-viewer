@@ -146,6 +146,11 @@ body { background: var(--bg); color: var(--text); font: 14px/1.45 var(--font); }
   border: 1px solid var(--border); border-radius: 8px;
 }
 .floors[hidden] { display: none; }
+.floors-label {
+  font-size: 9px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--muted); text-align: center; padding: 2px 0 3px; border-bottom: 1px solid var(--border);
+  margin-bottom: 2px; cursor: default;
+}
 .floors button {
   border: 0; border-radius: 5px; padding: 3px 0; background: none; color: var(--muted);
   font: 600 12px var(--font); font-variant-numeric: tabular-nums; cursor: pointer;
