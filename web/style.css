@@ -414,4 +414,6 @@ details.item[open] > summary { border-bottom: 1px solid var(--border); }
 @keyframes sc-twinkle { from { opacity: .35; } to { opacity: 1; } }
 @keyframes sc-fly { from { transform: translate(-80px, 10px); } 50% { transform: translate(200px, -12px); } to { transform: translate(420px, 6px); } }
 @keyframes sc-buzz { 0% { transform: translate(0, 0); } 25% { transform: translate(6px, -4px); } 50% { transform: translate(0, -8px); } 75% { transform: translate(-6px, -4px); } 100% { transform: translate(0, 0); } }
+.sc-flash { opacity: 0; animation: sc-flash 6s linear infinite; }
+@keyframes sc-flash { 0%, 90%, 100% { opacity: 0; } 91% { opacity: 1; } 92.5% { opacity: .15; } 94% { opacity: .9; } 96% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .scene * { animation: none !important; } }

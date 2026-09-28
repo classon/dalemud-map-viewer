@@ -77,16 +77,20 @@ const SKY = {
   day: { top: '#a9cfe3', band: '#c5e0ec', sun: '#f7e3a1' },
   dusk: { top: '#d99a86', band: '#efc39a', sun: '#f6d58c' },
   night: { top: '#28324d', band: '#3a4668', sun: '#e9e4cf' },
+  ether: { top: '#3b2d5c', band: '#5b4a86', sun: '#c9b8f0' },     // the ethereal web's otherworld
+  storm: { top: '#3e4552', band: '#58606e', sun: '#9aa0a8' },
 };
 const WALLS = {
   stone: ['#b7ae9f', '#a39a8a'], wood: ['#a67752', '#8f6443'], plaster: ['#e4d5b8', '#d2c09d'],
   marble: ['#ece7df', '#d9d2c6'], white: ['#f4f2ec', '#e3dfd6'], grimy: ['#8d8268', '#776d55'],
   dark: ['#4d4640', '#3c3631'], cave: ['#5b5750', '#48443e'],
+  hive: ['#c99a3e', '#b3862f'], silk: ['#b9b6c4', '#a19db0'],
 };
 const FLOORS = {
   cobbles: ['#9b9388', '#b1a99d'], dirt: ['#b58f63', '#a07c53'], grass: ['#86a85e', '#739650'],
   planks: ['#8d6445', '#7a5539'], marble: ['#e6e0d6', '#d3ccbf'], flagstone: ['#948e85', '#a8a298'],
   straw: ['#c9ad6a', '#b89a58'], water: ['#5f9dc0', '#78b3d1'], rubbish: ['#8c7d5e', '#776a4f'],
+  leaves: ['#5b5a3a', '#7a6a3c'], web: ['#3a3450', '#cfc9e6'], cloud: ['#e9e6f2', '#ffffff'], rock: ['#5f5a52', '#716b62'],
 };
 
 // ---------------------------------------------------------------- backdrops
@@ -94,7 +98,13 @@ function drawSky(k, sky) {
   const c = SKY[sky];
   let out = k.path(`M0,0H${W}V${HORIZON}H0Z`, c.top);
   out += k.piece(k.rect(-4, HORIZON - 70, W + 8, 74, 1.2), c.band);
-  if (sky === 'night') {
+  if (sky === 'ether') {
+    for (let i = 0; i < 3; i++) {
+      out += `<g class="sc-glow" style="animation-delay:${-i}s">${k.piece(k.rect(-10, 40 + i * 50, W + 20, 16, 2.2), ['#6f5aa6', '#4f8a9e', '#7a4f8e'][i], ' opacity=".45"')}</g>`;
+    }
+  } else if (sky === 'storm') {
+    // no sun; the lightning effect lights it up
+  } else if (sky === 'night') {
     out += `<g class="sc-glow">${k.piece(k.ellipse(282, 52, 17, 17), c.sun)}</g>`;
   } else {
     out += k.piece(k.ellipse(282, 56, 20, 20), c.sun);
@@ -117,6 +127,17 @@ function drawWall(k, back) {
   } else if (back === 'marble' || back === 'white') {
     out += k.piece(k.rect(-4, 12, W + 8, 16, 0.6), shade);
     out += k.piece(k.rect(-4, HORIZON - 26, W + 8, 30, 0.6), shade);
+  } else if (back === 'hive') {
+    // Honeycomb cells, a few glowing with grubs.
+    for (let row = 0; row * 26 < HORIZON + 20; row++) {
+      for (let col = -1; col * 30 < W + 30; col++) {
+        const cx = col * 30 + (row % 2) * 15, cy = row * 26;
+        const hex = [0, 1, 2, 3, 4, 5].map((i) => [cx + Math.cos(Math.PI / 6 + (i * Math.PI) / 3) * 15, cy + Math.sin(Math.PI / 6 + (i * Math.PI) / 3) * 15]);
+        out += k.piece(k.cut(hex, 0.4), k.rand() < 0.2 ? '#e8c46a' : shade);
+      }
+    }
+  } else if (back === 'silk') {
+    for (let x = -10; x < W; x += 18) out += k.path(`M${x},0 Q${x + 9 + k.jitter(6)},${HORIZON / 2} ${x + k.jitter(4)},${HORIZON + 4}`, 'none', ` stroke="${shade}" stroke-width="5" opacity=".6"`);
   } else if (back === 'plaster') {
     out += k.piece(k.rect(-4, HORIZON - 34, W + 8, 38, 0.8), '#a67752');
     for (let x = 20; x < W; x += 70) out += k.piece(k.rect(x, 0, 12, HORIZON - 30, 0.6), '#a67752');
@@ -192,7 +213,13 @@ function drawFloor(k, floor) {
     for (let row = 0; row < 5; row++) {
       out += `<g class="sc-flow" style="animation-delay:${-row * 1.3}s">${k.piece(k.rect(-40, HORIZON + 22 + row * 18, W + 80, 5, 1.4), b, ' opacity=".8"')}</g>`;
     }
-  } else if (floor === 'dirt' || floor === 'straw' || floor === 'rubbish') {
+  } else if (floor === 'web') {
+    // Silk strands converging on a vanishing point.
+    for (let i = -8; i <= 8; i++) out += `<path d="M${W / 2 + i * 6},${HORIZON} L${W / 2 + i * 60},${H + 4}" stroke="${b}" stroke-width="1.2" opacity=".6"/>`;
+    for (let r = 0; r < 5; r++) out += `<path d="M-4,${HORIZON + 8 + r * r * 5} Q${W / 2},${HORIZON + 16 + r * r * 5} ${W + 4},${HORIZON + 8 + r * r * 5}" fill="none" stroke="${b}" stroke-width="1" opacity=".5"/>`;
+  } else if (floor === 'cloud') {
+    for (let i = 0; i < 9; i++) out += k.piece(k.ellipse(i * 44 - 10, HORIZON + 10 + (i % 2) * 18, 40, 20, 1), b, ' opacity=".9"');
+  } else if (floor === 'dirt' || floor === 'straw' || floor === 'rubbish' || floor === 'leaves' || floor === 'rock') {
     for (let i = 0; i < 14; i++) {
       const x = k.rand() * W, y = HORIZON + 10 + k.rand() * (H - HORIZON - 16);
       out += k.piece(k.ellipse(x, y, 4 + k.rand() * 6, 1.6 + k.rand() * 1.5, 0.3), b, ' opacity=".8"');
@@ -692,6 +719,221 @@ const PROPS = {
   } },
 };
 
+// ---------------------------------------------------------------- spider realm (Arachnos)
+function orbWeb(k, cx, cy, r, colors) {
+  // Spokes, then a spiral of short strands between them.
+  let out = '';
+  const spokes = 14;
+  for (let i = 0; i < spokes; i++) {
+    const a = (i / spokes) * Math.PI * 2 + k.jitter(0.05);
+    out += `<line x1="${cx}" y1="${cy}" x2="${(cx + Math.cos(a) * r).toFixed(1)}" y2="${(cy + Math.sin(a) * r).toFixed(1)}" stroke="${colors[i % colors.length]}" stroke-width="1.3"/>`;
+  }
+  let pts = '';
+  for (let t = 0; t < spokes * 7; t++) {
+    const a = (t / spokes) * Math.PI * 2, rr = 8 + (t / (spokes * 7)) * (r - 8);
+    pts += `${t ? 'L' : 'M'}${(cx + Math.cos(a) * rr).toFixed(1)},${(cy + Math.sin(a) * rr).toFixed(1)}`;
+  }
+  out += `<path d="${pts}" fill="none" stroke="${colors[0]}" stroke-width=".9" opacity=".85"/>`;
+  return out;
+}
+const RAINBOW = ['#ff6b6b', '#ffb347', '#ffe66d', '#7bd389', '#5fb6e8', '#8a7bd8', '#e07bd0'];
+const SILK = ['#e8e6f0'];
+
+function spider(k, x, y, s, body = '#2f2a2e', mark = '#b5524a') {
+  // Eight legs, each bending up to a high knee and down to a foot, fanned
+  // from the front pair (reaching forward and up) to the back pair.
+  let out = '';
+  for (const side of [-1, 1]) {
+    for (let i = 0; i < 4; i++) {
+      const hipX = x + side * 5 * s, hipY = y - 2 * s + i * 2 * s;
+      const kneeX = x + side * (18 + i * 5) * s, kneeY = y - (22 - i * 4) * s;
+      const footX = x + side * (26 + i * 9) * s, footY = y + (14 + i * 2) * s;
+      out += `<path d="M${hipX.toFixed(1)},${hipY.toFixed(1)} L${kneeX.toFixed(1)},${kneeY.toFixed(1)} L${footX.toFixed(1)},${footY.toFixed(1)}" fill="none" stroke="${body}" stroke-width="${(2.2 * s).toFixed(1)}" stroke-linecap="round" stroke-linejoin="round"/>`;
+    }
+  }
+  out += k.piece(k.ellipse(x, y + 6 * s, 14 * s, 12 * s, 0.4), body);
+  out += k.piece(k.ellipse(x, y - 6 * s, 8 * s, 7 * s, 0.3), body);
+  out += k.piece(k.cut([[x - 4 * s, y + 2 * s], [x, y + 10 * s], [x + 4 * s, y + 2 * s], [x, y - 1 * s]], 0.2), mark);
+  out += `<circle cx="${x - 2.5 * s}" cy="${y - 8 * s}" r="${1.2 * s}" fill="#f0c75e"/><circle cx="${x + 2.5 * s}" cy="${y - 8 * s}" r="${1.2 * s}" fill="#f0c75e"/>`;
+  return out;
+}
+
+Object.assign(PROPS, {
+  web: { layer: 'full', draw: (k, opts) => `<g class="sc-glow">${orbWeb(k, opts?.x ?? 174, opts?.y ?? 118, opts?.r ?? 112, opts?.rainbow ? RAINBOW : SILK)}</g>` },
+  cobwebs: { layer: 'full', draw: (k) => {
+    let out = '';
+    for (const [cx, dir] of [[0, 1], [W, -1]]) {
+      for (let i = 0; i <= 5; i++) {
+        const a = (i / 5) * (Math.PI / 2);
+        out += `<line x1="${cx}" y1="0" x2="${(cx + dir * Math.cos(a) * 90).toFixed(1)}" y2="${(Math.sin(a) * 90).toFixed(1)}" stroke="#e8e6f0" stroke-width="1" opacity=".75"/>`;
+      }
+      for (const r of [25, 45, 65, 85]) out += `<path d="M${cx + dir * r},0 Q${cx + dir * r * 0.62},${r * 0.62} ${cx},${r}" fill="none" stroke="#e8e6f0" stroke-width=".9" opacity=".7"/>`;
+    }
+    return out;
+  } },
+  canopy: { layer: 'full', draw: (k) => {
+    // Deep woods behind, dark trunks framing the scene under a heavy leaf
+    // canopy, strung with webs.
+    let out = k.path(`M0,0H${W}V${HORIZON + 4}H0Z`, '#2a3a2a');
+    for (let i = 0; i < 12; i++) {
+      const x = k.rand() * W, w = 6 + k.rand() * 10;
+      out += k.piece(k.rect(x, 20, w, HORIZON - 16, 0.6), '#34463a', ' opacity=".8"');
+    }
+    out += k.piece(k.rect(-4, HORIZON - 40, W + 8, 44, 1.5), '#304531', ' opacity=".7"');
+    for (const [x, w] of [[-20, 70], [300, 64], [110, 26], [220, 22]]) {
+      out += k.piece(k.cut([[x, HORIZON + 4], [x + w * 0.2, 0], [x + w * 0.8, 0], [x + w, HORIZON + 4]], 1), w > 40 ? '#3d3226' : '#4a3d2e');
+    }
+    for (let i = 0; i < 9; i++) out += k.piece(k.ellipse(i * 44 - 10 + k.jitter(8), 8 + k.jitter(10), 42, 30, 1.2), i % 2 ? '#2f4a2c' : '#3b5a33');
+    out += `<g opacity=".6">${orbWeb(k, 78, 120, 40, SILK)}${orbWeb(k, 262, 90, 34, SILK)}</g>`;
+    return out;
+  } },
+  branch: { layer: 'front', draw: (k, opts) => {
+    // A thick limb underfoot, rising from the lower left and tapering off to
+    // the right, with a knot and a smaller branch.
+    let out = k.piece(k.cut([[-200, 14], [-200, -96], [-60, -104], [60, -118], [200, -150], [200, -118], [60, -80], [-60, -46], [-200, -34]], 1.6), '#5b4331');
+    out += k.piece(k.cut([[-200, -92], [-60, -100], [60, -114], [200, -146], [200, -138], [60, -104], [-60, -88], [-200, -80]], 0.8), '#7a5f47');
+    out += k.piece(k.cut([[20, -104], [70, -170], [80, -166], [36, -98]], 0.8), '#5b4331');
+    out += k.piece(k.ellipse(-40, -72, 10, 7, 0.4), '#3d2e22');
+    for (let i = 0; i < 10; i++) out += `<path d="M${(-190 + i * 38).toFixed(0)},${(-60 - i * 5).toFixed(0)} l18,-4" stroke="#4a3727" stroke-width="1.4"/>`;
+    if (opts?.fuzz) {
+      for (let i = 0; i < 90; i++) {
+        const t = k.rand();
+        const cx = -190 + t * 380, cy = -94 - t * 50 + k.rand() * 26;
+        out += `<circle cx="${cx.toFixed(0)}" cy="${cy.toFixed(0)}" r="1.6" fill="#9cc46a"/>`;
+      }
+    }
+    return out;
+  } },
+  strand: { layer: 'front', draw: (k, opts) => `<g class="sc-glow"><path d="M-200,${opts?.dy ?? -20} Q0,${(opts?.dy ?? -20) + 30} 200,${opts?.dy ?? -20}" fill="none" stroke="${opts?.color ?? '#e8e6f0'}" stroke-width="4" stroke-linecap="round"/></g>` },
+  ravine: { layer: 'full', draw: (k) => k.piece(k.cut([[-6, HORIZON + 4], [-6, 150], [70, 164], [110, 210], [120, HORIZON + 4]], 1.2), '#6f6456')
+    + k.piece(k.cut([[W + 6, HORIZON + 4], [W + 6, 146], [270, 160], [236, 214], [226, HORIZON + 4]], 1.2), '#665b4e')
+    + k.piece(k.rect(120, 214, 106, 34, 1), '#231f26') },
+  spider: { layer: 'mid', draw: (k, opts) => `<g class="sc-bob">${spider(k, 0, -40, 2.2, opts?.body, opts?.mark)}</g>` },
+  'hanging-spider': { layer: 'wall', draw: (k) => `<g class="sc-float"><line x1="0" y1="-210" x2="0" y2="-70" stroke="#e8e6f0" stroke-width="1"/>${spider(k, 0, -60, 0.9)}</g>` },
+  spiders: { layer: 'front', draw: (k) => {
+    let out = '';
+    for (let i = 0; i < 7; i++) {
+      const x = -150 + i * 50 + k.jitter(12), y = -10 - k.rand() * 30;
+      const carry = k.rand() < 0.5 ? k.piece(k.ellipse(x + 2, y - 14, 9, 5, 0.3), '#c9b8a0') : '';
+      out += `<g class="sc-bob" style="animation-delay:${-(k.rand() * 2).toFixed(2)}s">${spider(k, x, y, 0.8)}${carry}</g>`;
+    }
+    return out;
+  } },
+  ballooning: { layer: 'wall', draw: (k) => {
+    let out = '';
+    for (let i = 0; i < 9; i++) {
+      const x = -160 + k.rand() * 320, y = -190 + k.rand() * 140;
+      out += `<g class="sc-float" style="animation-delay:${-(k.rand() * 5).toFixed(2)}s"><line x1="${x.toFixed(0)}" y1="${(y - 26).toFixed(0)}" x2="${x.toFixed(0)}" y2="${y.toFixed(0)}" stroke="#e8e6f0" stroke-width=".8"/>${spider(k, x, y, 0.28)}</g>`;
+    }
+    return out;
+  } },
+  cocoons: { layer: 'wall', draw: (k) => {
+    let out = '';
+    for (const x of [-120, -40, 50, 130]) {
+      const len = 30 + k.rand() * 20;
+      out += `<g class="sc-sway-top" style="animation-delay:${-(k.rand() * 3).toFixed(2)}s"><line x1="${x}" y1="-200" x2="${x}" y2="${(-150 + k.rand() * 20).toFixed(0)}" stroke="#e8e6f0" stroke-width="1"/>${k.piece(k.ellipse(x, -130, 10, len / 2, 0.8), '#dcd8e4')}`
+        + [0, 1, 2].map((i) => `<path d="M${x - 10},${-140 + i * 9} q10,5 20,0" fill="none" stroke="#b9b6c4" stroke-width="1"/>`).join('') + '</g>';
+    }
+    return out;
+  } },
+  bones: { layer: 'front', draw: (k) => {
+    let out = '';
+    for (let i = 0; i < 7; i++) {
+      const x = -140 + k.rand() * 280, y = -4 - k.rand() * 10, a = k.rand() * 180;
+      out += `<g transform="translate(${x.toFixed(0)},${y.toFixed(0)}) rotate(${a.toFixed(0)})">${k.piece(k.rect(-12, -2, 24, 4, 0.3), '#e8e0cc')}${k.piece(k.ellipse(-12, 0, 3.5, 3.5, 0.2), '#e8e0cc')}${k.piece(k.ellipse(12, 0, 3.5, 3.5, 0.2), '#e8e0cc')}</g>`;
+    }
+    out += k.piece(k.ellipse(40, -12, 11, 10, 0.4), '#e8e0cc') + `<circle cx="36" cy="-13" r="2.4" fill="#2f2a26"/><circle cx="44" cy="-13" r="2.4" fill="#2f2a26"/>`;
+    return out;
+  } },
+  minecart: { layer: 'mid', draw: (k) => {
+    let out = '';
+    for (const y of [0, -6]) out += k.piece(k.rect(-170, y - 2, 340, 3, 0.4), '#6e6e6e');
+    for (let x = -160; x < 170; x += 22) out += k.piece(k.rect(x, -8, 6, 10, 0.3), '#5b3d2a');
+    out += k.piece(k.cut([[-50, -14], [-56, -54], [56, -54], [50, -14]], 0.6), '#6b5e55');
+    for (let i = 0; i < 8; i++) out += k.piece(k.ellipse(-40 + i * 11, -56 - (i % 2) * 4, 7, 6, 0.3), i % 3 ? '#d8b04a' : '#c9ced6');
+    for (const x of [-32, 32]) out += k.piece(k.ellipse(x, -12, 9, 9, 0.3), '#3b3430');
+    return out;
+  } },
+  ghosts: { layer: 'mid', draw: (k) => {
+    let out = '';
+    for (let i = 0; i < 4; i++) {
+      const x = -120 + i * 80 + k.jitter(14), y = -30 - k.rand() * 40;
+      out += `<g class="sc-float" style="animation-delay:${-(k.rand() * 5).toFixed(2)}s" opacity=".55">${k.piece(k.cut([[x - 16, y], [x - 14, y - 44], [x, y - 58], [x + 14, y - 44], [x + 16, y], [x + 8, y - 8], [x, y], [x - 8, y - 8]], 1), '#dfe8f2')}<circle cx="${x - 5}" cy="${y - 40}" r="2.6" fill="#2f3440"/><circle cx="${x + 5}" cy="${y - 40}" r="2.6" fill="#2f3440"/></g>`;
+    }
+    return out;
+  } },
+  chair: { layer: 'mid', draw: (k) => k.piece(k.rect(-26, -110, 8, 110, 0.4), '#3b3430') + k.piece(k.rect(18, -110, 8, 110, 0.4), '#3b3430')
+    + k.piece(k.rect(-30, -50, 60, 10, 0.4), '#4d4640') + k.piece(k.rect(-26, -110, 52, 40, 0.5), '#4d4640') + k.piece(k.rect(-26, -40, 8, 40, 0.3), '#3b3430') },
+  shack: { layer: 'mid', draw: (k) => {
+    let out = k.piece(k.cut([[-70, 0], [-66, -80], [66, -86], [70, 0]], 1.2), '#6b5a48');
+    out += k.piece(k.cut([[-86, -76], [0, -126], [86, -82]], 1.2), '#4a3d2e');
+    for (let x = -60; x < 64; x += 14) out += `<line x1="${x}" y1="-80" x2="${x + k.jitter(2)}" y2="0" stroke="#5b4a3a" stroke-width="1.2"/>`;
+    out += `<g class="sc-glow">${k.piece(k.rect(18, -60, 24, 20, 0.4), '#f6d58c')}</g>` + k.piece(k.rect(-40, -52, 26, 52, 0.4), '#3b3430');
+    return out;
+  } },
+  dragon: { layer: 'mid', draw: (k, opts) => {
+    const c = opts?.color ?? '#8a3b36', d = opts?.dark ?? '#6a2b28';
+    let out = k.piece(k.cut([[-10, -90], [-120, -190], [-90, -110], [-150, -140], [-60, -70]], 1), d);   // wing
+    out += k.piece(k.cut([[-110, 0], [-120, -30], [-60, -80], [40, -90], [90, -60], [100, 0]], 1.2), c);  // body
+    out += k.piece(k.cut([[60, -80], [100, -150], [120, -160], [150, -150], [130, -130], [110, -128], [90, -70]], 0.8), c); // neck and head
+    out += k.piece(k.cut([[120, -160], [128, -182], [132, -158]], 0.3), '#e8e0cc');
+    out += `<circle cx="136" cy="-148" r="3" fill="#f0c75e" class="sc-glow"/>`;
+    out += k.piece(k.cut([[-110, -10], [-200, 10], [-190, 20], [-100, 4]], 0.8), c);
+    for (let i = 0; i < 6; i++) out += k.piece(k.cut([[-60 + i * 22, -84 + i], [-50 + i * 22, -100 + i], [-40 + i * 22, -86 + i]], 0.3), d);
+    return out;
+  } },
+  wormkin: { layer: 'mid', draw: (k) => `<g class="sc-bob">${k.piece(k.cut([[-60, 0], [-50, -20], [-10, -24], [20, -40], [40, -48], [52, -40], [40, -30], [20, -10], [30, 0]], 0.8), '#5f8f5a')}${k.piece(k.cut([[-10, -24], [0, -40], [8, -24]], 0.4), '#4a7046')}<circle cx="46" cy="-44" r="2" fill="#f0c75e"/></g>` },
+  hoard: { layer: 'front', draw: (k) => {
+    let out = k.piece(k.cut([[-160, 4], [-120, -34], [-40, -52], [40, -44], [120, -30], [160, 4]], 1.4), '#d8b04a');
+    for (let i = 0; i < 28; i++) out += k.piece(k.ellipse(-140 + k.rand() * 280, -4 - k.rand() * 36, 5, 3, 0.2), k.rand() < 0.2 ? ['#b5524a', '#4f9ea8', '#8b5f9e', '#6d8f4e'][i % 4] : '#f0c75e');
+    out += k.piece(k.rect(60, -60, 50, 34, 0.5), '#6e4a33') + k.piece(k.rect(58, -66, 54, 10, 0.4), '#8d6445') + k.piece(k.rect(82, -58, 6, 8, 0.2), '#d8b04a');
+    return out;
+  } },
+  tomes: { layer: 'mid', draw: (k) => {
+    let out = '';
+    for (const [x, n] of [[-90, 5], [-50, 3], [70, 4]]) {
+      for (let i = 0; i < n; i++) out += k.piece(k.rect(x - 16 + k.jitter(3), -12 - i * 10, 32, 9, 0.3), ['#8a3b36', '#4f6f8f', '#6d5a3a', '#3f6f6a'][(i + n) % 4]);
+    }
+    out += `<g transform="translate(10,-6) rotate(-14)">${k.piece(k.cut([[-18, 0], [-14, -26], [14, -26], [18, 0]], 0.4), '#8d949c')}</g>`;
+    out += `<g transform="translate(120,-4) rotate(30)">${k.piece(k.cut([[-3, 0], [3, 0], [2, -46], [0, -52], [-2, -46]], 0.2), '#c9ced6')}</g>`;
+    return out;
+  } },
+  kirin: { layer: 'mid', draw: (k) => {
+    let out = `<g class="sc-glow">${k.piece(k.ellipse(0, -60, 90, 70, 1.5), '#f6e6a8', ' opacity=".25"')}</g>`;
+    out += k.piece(k.cut([[-60, -40], [-50, -76], [30, -80], [50, -50], [40, -36]], 0.8), '#f1eee8');
+    for (const x of [-50, -30, 20, 36]) out += k.piece(k.rect(x - 3, -44, 6, 44, 0.3), '#e3dfd6');
+    out += k.piece(k.cut([[30, -78], [60, -120], [78, -116], [72, -96], [48, -70]], 0.6), '#f1eee8');
+    out += k.piece(k.cut([[66, -118], [80, -152], [74, -114]], 0.3), '#d8b04a');
+    out += k.piece(k.cut([[20, -80], [44, -114], [36, -80]], 0.5), '#d8b04a');
+    out += k.piece(k.cut([[-60, -64], [-84, -50], [-78, -44], [-58, -54]], 0.5), '#d8b04a');
+    out += `<g opacity=".7">${[-100, -60, 60, 100].map((x) => `<line x1="${x}" y1="-170" x2="${x / 3}" y2="-60" stroke="#e8e6f0" stroke-width="1.4"/>`).join('')}</g>`;
+    return out;
+  } },
+  'web-door': { layer: 'full', draw: (k) => {
+    let out = k.piece(k.cut([[64, HORIZON + 4], [64, 90], [174, 24], [284, 90], [284, HORIZON + 4]], 1), '#4a4460');
+    out += `<g opacity=".9">${orbWeb(k, 174, 140, 100, ['#d9d2f0'])}</g>`;
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      out += `<text x="${(174 + Math.cos(a) * 70).toFixed(0)}" y="${(144 + Math.sin(a) * 70).toFixed(0)}" font-size="12" fill="#f0c75e" text-anchor="middle" class="sc-glow" style="animation-delay:${-i * 0.4}s">${'ᚠᚢᚦᚨᚱᚲᚷᚹ'[i]}</text>`;
+    }
+    return out;
+  } },
+  wasps: { layer: 'wall', draw: (k) => {
+    let out = '';
+    for (let i = 0; i < 6; i++) {
+      const x = -150 + k.rand() * 300, y = -180 + k.rand() * 120;
+      out += `<g class="sc-buzz" style="animation-delay:${-(k.rand() * 2).toFixed(2)}s">${k.piece(k.ellipse(x, y, 8, 4, 0.2), '#e8c46a')}${k.piece(k.rect(x - 2, y - 4, 3, 8, 0.1), '#2f2a26')}${k.piece(k.ellipse(x - 2, y - 6, 5, 3, 0.2), '#e8f0f8', ' opacity=".7"')}</g>`;
+    }
+    return out;
+  } },
+  grubs: { layer: 'front', draw: (k) => {
+    let out = '';
+    for (let i = 0; i < 8; i++) out += `<g class="sc-bob" style="animation-delay:${-(k.rand() * 3).toFixed(2)}s">${k.piece(k.ellipse(-150 + i * 42 + k.jitter(8), -8, 14, 7, 0.4), '#efe3c4')}</g>`;
+    return out;
+  } },
+  thief: { layer: 'mid', draw: (k) => person(k, 0, 0, 2.4, '#3b3430') + k.piece(k.cut([[18, -44], [52, -60], [54, -56], [20, -40]], 0.2), '#c9ced6') },
+});
+
 // ---------------------------------------------------------------- effects
 const FX = {
   clouds: (k) => {
@@ -742,6 +984,15 @@ const FX = {
   flies: (k) => {
     let out = '';
     for (let i = 0; i < 6; i++) out += `<g class="sc-buzz" style="animation-delay:${-(k.rand() * 2).toFixed(2)}s"><circle cx="${(90 + k.rand() * 170).toFixed(0)}" cy="${(200 + k.rand() * 40).toFixed(0)}" r="1.4" fill="#2f2a26"/></g>`;
+    return out;
+  },
+  lightning: (k) => `<g class="sc-flash">${k.path(k.cut([[210, 0], [190, 60], [206, 62], [180, 130], [228, 50], [210, 48], [230, 0]], 0.5), '#fff7c2')}</g>`
+    + '<g class="sc-flash"><rect width="348" height="348" fill="#ffffff" opacity=".2"/></g>', // the group fades; the sky flash stays faint
+  shimmer: (k) => {
+    let out = '';
+    for (let i = 0; i < 20; i++) {
+      out += `<circle class="sc-twinkle" style="animation-delay:${-(k.rand() * 3).toFixed(2)}s" cx="${(k.rand() * W).toFixed(0)}" cy="${(k.rand() * 260).toFixed(0)}" r="${(1 + k.rand() * 1.8).toFixed(1)}" fill="${['#c9b8f0', '#9fe0ea', '#f5c6ef'][i % 3]}"/>`;
+    }
     return out;
   },
   sunbeam: (k) => `<g class="sc-glow">${k.path(k.cut([[150, -10], [200, -10], [260, HORIZON], [110, HORIZON]], 1), '#fff4c8', ' opacity=".25"')}</g>`,
