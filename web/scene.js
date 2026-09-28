@@ -125,17 +125,21 @@ function drawWall(k, back) {
 }
 
 // Distant scenery for outdoor backdrops.
-function drawOutdoorBack(k, back) {
+// `sky` is the sky palette, used to haze distant scenery. 'none' draws no
+// scenery, for props that bring their own (like the alley).
+function drawOutdoorBack(k, back, sky) {
   let out = '';
   if (back === 'town') {
+    // A far-off skyline: smaller houses than anything a prop draws, then a
+    // wash of sky colour over them so they read as distant.
     let x = -10;
     while (x < W) {
-      const w = 44 + k.rand() * 30, h = 80 + k.rand() * 70;
+      const w = 30 + k.rand() * 22, h = 70 + k.rand() * 50;
       const colors = ['#cdb89a', '#b9a07f', '#d9c7a8', '#a88f70', '#c4a98a'];
-      const col = colors[Math.floor(k.rand() * colors.length)];
-      out += house(k, x, HORIZON, w, h, col);
-      x += w - 4;
+      out += house(k, x, HORIZON, w, h, colors[Math.floor(k.rand() * colors.length)]);
+      x += w - 3;
     }
+    out += `<rect x="0" y="0" width="${W}" height="${HORIZON}" fill="${SKY[sky]?.band ?? '#c5e0ec'}" opacity=".4"/>`;
   } else if (back === 'wall') {
     out += cityWall(k, HORIZON, 118);
   } else if (back === 'plains') {
@@ -340,7 +344,9 @@ const PROPS = {
     return out;
   } },
   alley: { layer: 'full', draw: (k) => {
-    let out = '';
+    // A dark recessed backdrop behind the far buildings reads as narrow side
+    // passages in the gaps, and keeps anything behind the alley from showing.
+    let out = k.piece(k.rect(84, 96, 180, HORIZON - 94, 0.6), '#4f453b');
     out += house(k, -20, HORIZON + 2, 110, 210, '#8f7a64');
     out += house(k, 258, HORIZON + 2, 110, 200, '#7f6b58');
     out += house(k, 96, HORIZON - 14, 70, 120, '#a08a70');
@@ -785,7 +791,7 @@ export function renderScene(spec, seed) {
 
   const back = spec.sky
     ? drawSky(k, spec.sky) + (spec.fx?.includes('stars') ? FX.stars(k) : '') + (spec.fx?.includes('clouds') ? FX.clouds(k) : '')
-      + (spec.fx?.includes('birds') ? FX.birds(k) : '') + drawOutdoorBack(k, spec.back)
+      + (spec.fx?.includes('birds') ? FX.birds(k) : '') + drawOutdoorBack(k, spec.back, spec.sky)
     : drawWall(k, spec.back ?? 'stone');
   const fx = (spec.fx ?? []).filter((f) => !['stars', 'clouds', 'birds'].includes(f) && FX[f]).map((f) => FX[f](k)).join('');
 

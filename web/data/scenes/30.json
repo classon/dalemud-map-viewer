@@ -804,7 +804,7 @@
 },
 "3024":{
 "sky":"dusk",
-"back":"town",
+"back":"none",
 "floor":"dirt",
 "props":[
 "alley",
@@ -839,7 +839,7 @@
 },
 "3026":{
 "sky":"night",
-"back":"town",
+"back":"none",
 "floor":"cobbles",
 "light":"dim",
 "props":[
