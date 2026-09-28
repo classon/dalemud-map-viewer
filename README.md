@@ -111,7 +111,8 @@ drawn in the browser by `web/scene.js` from a spec of a few hundred bytes:
 optionally with a horizontal position (0–1) and scale; `SCENE_PROPS` and
 `SCENE_FX` in `scene.js` list what exists. Edges, shadows and paper grain are
 seeded by the room number, so a room always looks the same. Northern Midgaard
-Main City (zone 30) is the pilot.
+Main City (zone 30) is the pilot. The **Gallery** button over the map shows all of a
+zone's scenes as a responsive contact sheet; click one to go to that room.
 
 ## Credits and license
 

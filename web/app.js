@@ -246,6 +246,7 @@ renderer.setAnimationLoop((time) => {
     renderWorldFrame();
     return;
   }
+  if (galleryOpen) return; // the gallery covers the map
   controls.update();
   updateCompass();
   animateSelection(time);
@@ -1081,6 +1082,9 @@ details.addEventListener('click', (e) => {
 // ---------------------------------------------------------------- selection & navigation
 function highlightRoom(room) {
   state.selected = room;
+  if (galleryOpen) {
+    for (const t of galleryGrid.children) t.classList.toggle('here', Number(t.dataset.vnum) === room?.vnum);
+  }
   // Follow the selection onto its floor when a single floor is shown.
   if (room && state.level != null && room.pos[1] !== state.level) setLevel(room.pos[1]);
   const mesh = room && state.roomMeshes.get(room.vnum);
@@ -1426,6 +1430,7 @@ function worldClick(e) {
 }
 
 function setWorldOpen(open) {
+  if (open && galleryOpen) setGalleryOpen(false);
   worldOpen = open;
   worldEl.hidden = !open;
   mapPane.classList.toggle('world-mode', open);
@@ -1445,6 +1450,73 @@ function setWorldOpen(open) {
 worldToggle.addEventListener('click', () => setWorldOpen(!worldOpen));
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && worldOpen && !credits.open) setWorldOpen(false);
+});
+
+// ---------------------------------------------------------------- scene gallery
+// A contact sheet of the current zone's room scenes. Tiles render as they
+// scroll into view and stay still until hovered.
+const galleryEl = $('#gallery');
+const galleryGrid = $('#gallery-grid');
+const galleryToggle = $('#gallery-toggle');
+let galleryOpen = false;
+let galleryObserver = null;
+
+function updateGalleryButton() {
+  const specs = scenes.byZone.get(state.zone?.id);
+  galleryToggle.hidden = !specs || !Object.keys(specs).length;
+  if (galleryToggle.hidden && galleryOpen) setGalleryOpen(false);
+}
+
+function renderGallery() {
+  const specs = scenes.byZone.get(state.zone.id) ?? {};
+  const rooms = state.zone.rooms.filter((r) => specs[r.vnum]).sort((a, b) => a.vnum - b.vnum);
+  $('#gallery-title').textContent = `${state.zone.name} · ${rooms.length} scenes`;
+  galleryGrid.innerHTML = rooms.map((r) => `<button class="gallery-tile${r.vnum === state.selected?.vnum ? ' here' : ''}" data-vnum="${r.vnum}" title="${esc(r.name)} #${r.vnum}">
+      <div class="gallery-art"></div>
+      <div class="gallery-name">${esc(r.name)}<small>#${r.vnum}</small></div>
+    </button>`).join('');
+  galleryObserver?.disconnect();
+  galleryObserver = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      const tile = entry.target;
+      const vnum = Number(tile.dataset.vnum);
+      tile.querySelector('.gallery-art').innerHTML = renderScene(specs[vnum], vnum);
+      galleryObserver.unobserve(tile);
+    }
+  }, { root: galleryEl, rootMargin: '300px 0px' });
+  for (const tile of galleryGrid.children) galleryObserver.observe(tile);
+}
+
+function setGalleryOpen(open) {
+  if (open && worldOpen) setWorldOpen(false);
+  galleryOpen = open;
+  galleryEl.hidden = !open;
+  mapPane.classList.toggle('gallery-mode', open);
+  galleryToggle.setAttribute('aria-pressed', String(open));
+  galleryToggle.textContent = open ? 'Back to map' : 'Gallery';
+  tooltip.hidden = true;
+  if (open) {
+    renderGallery();
+    galleryEl.querySelector('.gallery-tile.here')?.scrollIntoView({ block: 'center' });
+  } else {
+    galleryObserver?.disconnect();
+    galleryGrid.innerHTML = '';
+  }
+}
+
+galleryToggle.addEventListener('click', () => setGalleryOpen(!galleryOpen));
+galleryGrid.addEventListener('click', (e) => {
+  const tile = e.target.closest('.gallery-tile');
+  if (!tile) return;
+  const vnum = Number(tile.dataset.vnum);
+  setGalleryOpen(false);
+  selectRoom(vnum);
+  const mesh = state.roomMeshes.get(vnum);
+  if (mesh) panTo(mesh.position);
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && galleryOpen && !credits.open && !sceneDialog.open) setGalleryOpen(false);
 });
 
 // ---------------------------------------------------------------- numpad walking
@@ -1492,7 +1564,7 @@ function walk(dir) {
 
 document.addEventListener('keydown', (e) => {
   const dir = NUMPAD_DIRS[e.code];
-  if (dir == null || e.ctrlKey || e.metaKey || e.altKey || worldOpen) return;
+  if (dir == null || e.ctrlKey || e.metaKey || e.altKey || worldOpen || galleryOpen) return;
   if (e.target instanceof Element && e.target.closest('input, textarea, select, [contenteditable]')) return;
   if (credits.open) return;
   e.preventDefault();
@@ -1522,6 +1594,8 @@ async function goTo(zoneId, vnum, mobId = null, mobTab = null) {
     for (const btn of zoneList.querySelectorAll('button')) {
       btn.classList.toggle('active', Number(btn.dataset.zone) === zoneId);
     }
+    updateGalleryButton();
+    if (galleryOpen) renderGallery(); // browsing zones with the gallery open
   }
   if (mobId != null && state.zone.mobs[mobId]) {
     selectMob(mobId, mobTab);

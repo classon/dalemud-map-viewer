@@ -69,7 +69,12 @@
         </svg>
       </button>
       <div id="viewport" class="viewport"></div>
+      <button id="gallery-toggle" class="world-toggle gallery-toggle" type="button" aria-pressed="false" hidden>Gallery</button>
       <button id="world-toggle" class="world-toggle" type="button" aria-pressed="false">World map</button>
+      <div id="gallery" class="gallery" hidden>
+        <div class="gallery-head"><span id="gallery-title"></span> <small>hover a scene to animate it · click to go there · Esc to close</small></div>
+        <div id="gallery-grid" class="gallery-grid"></div>
+      </div>
       <div id="world" class="world" hidden>
         <div class="world-title">World map <small>zones sized by rooms, linked by the exits between them</small></div>
         <div id="world-labels" class="world-labels"></div>
