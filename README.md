@@ -20,6 +20,8 @@ tools/dale_tables.py     flag and name tables from the game source
 tools/dale_reader.py     fread_string()/fscanf()-style stream reader
 web/index.html           the viewer (static files, no build step)
 web/app.js               three.js scene, picking, zone list, details pane
+web/scene.js             papercraft room scenes drawn as SVG from a small spec
+web/data/scenes/         hand-written scene specs per zone (index.json lists the zones)
 web/data/zones.json      zone index
 web/data/zones/*.json    one file per zone: rooms with grid positions, mob placements,
                          and the mob and object prototypes that zone needs
@@ -92,6 +94,24 @@ from the middle half of their mob levels, shown with a `~`.
 Room cube colour is the sector type (city, forest, water…). Mob markers sit on
 top of their room: blue is good, yellow neutral, red evil (alignment ±350),
 and a diamond instead of a ball means the mob is aggressive.
+
+## Room scenes
+
+Rooms in zones listed in `web/data/scenes/index.json` show a 348×348 papercraft
+picture at the top of the details pane (click to enlarge, × to hide). Each is
+drawn in the browser by `web/scene.js` from a spec of a few hundred bytes:
+
+```json
+{"sky": "day", "back": "town", "floor": "cobbles",
+ "props": ["houses", ["fountain", 0.5], ["crowd"]], "fx": ["clouds", "birds"]}
+```
+
+`sky` (day/dusk/night) makes it an outdoor scene, otherwise `back` is a wall
+(stone, wood, plaster, marble, white, grimy, dark). Props are placed by name,
+optionally with a horizontal position (0–1) and scale; `SCENE_PROPS` and
+`SCENE_FX` in `scene.js` list what exists. Edges, shadows and paper grain are
+seeded by the room number, so a room always looks the same. Northern Midgaard
+Main City (zone 30) is the pilot.
 
 ## Credits and license
 

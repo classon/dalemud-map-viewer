@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from './vendor/OrbitControls.js';
+import { renderScene } from './scene.js';
 
 // Exit direction indices match the .wld file: D0..D5.
 const DIRS = ['north', 'east', 'south', 'west', 'up', 'down'];
@@ -895,6 +896,60 @@ function closeInfo() {
   writeHash();
 }
 
+// ---------------------------------------------------------------- room scenes
+// Papercraft pictures drawn from hand-written specs (data/scenes/<zone>.json),
+// for the zones listed in data/scenes/index.json.
+const sceneDialog = $('#scene-dialog');
+const scenes = { zones: new Set(), byZone: new Map() };
+let scenesHidden = false;
+try { scenesHidden = localStorage.getItem('scenes') === 'off'; } catch { /* default: shown */ }
+
+async function loadSceneIndex() {
+  try {
+    const res = await fetchData('data/scenes/index.json');
+    if (res.ok) scenes.zones = new Set((await res.json()).zones);
+  } catch { /* no scenes */ }
+}
+
+async function loadScenes(zoneId) {
+  if (!scenes.zones.has(zoneId) || scenes.byZone.has(zoneId)) return;
+  try {
+    const res = await fetchData(`data/scenes/${zoneId}.json`);
+    scenes.byZone.set(zoneId, res.ok ? await res.json() : {});
+  } catch {
+    scenes.byZone.set(zoneId, {}); // the map still works without pictures
+  }
+}
+
+const sceneSpec = (room) => scenes.byZone.get(state.zone?.id)?.[room.vnum] ?? null;
+
+function sceneHtml(room) {
+  const spec = sceneSpec(room);
+  if (!spec) return '';
+  if (scenesHidden) return '<button class="link small scene-toggle" data-scene="show">Show room scene</button>';
+  return `<div class="scene-wrap">
+    <button class="scene-open" data-scene="open" title="Enlarge" aria-label="Enlarge the room scene">${renderScene(spec, room.vnum)}</button>
+    <button class="scene-hide" data-scene="hide" title="Hide room scenes" aria-label="Hide room scenes">×</button>
+  </div>`;
+}
+
+function setScenesHidden(hidden) {
+  scenesHidden = hidden;
+  try { localStorage.setItem('scenes', hidden ? 'off' : 'on'); } catch { /* not persisted */ }
+  if (!state.info && !state.selectedMob) renderDetails(state.selected);
+}
+
+function openSceneDialog(room) {
+  const spec = sceneSpec(room);
+  if (!spec) return;
+  sceneDialog.querySelector('.scene-big').innerHTML = renderScene(spec, room.vnum);
+  sceneDialog.querySelector('.scene-caption').textContent = room.name;
+  sceneDialog.showModal();
+}
+sceneDialog.addEventListener('click', (e) => {
+  if (e.target === sceneDialog) sceneDialog.close();
+});
+
 function renderDetails(room) {
   if (!room) {
     details.innerHTML = '<p class="muted">Select a room on the map.</p>';
@@ -952,6 +1007,7 @@ function renderDetails(room) {
   const itemsHere = room.items ?? [];
 
   details.innerHTML = `
+    ${sceneHtml(room)}
     <h2>${esc(room.name)}</h2>
     <div class="meta">#${room.vnum} · ${esc(room.sector.replace('_', ' '))} · grid ${room.pos.join(', ')}</div>
     ${flagChips.length ? `<div class="chips">${flagChips.join('')}</div>` : ''}
@@ -968,6 +1024,13 @@ function renderDetails(room) {
 }
 
 details.addEventListener('click', (e) => {
+  const sceneBtn = e.target.closest('[data-scene]');
+  if (sceneBtn) {
+    const action = sceneBtn.dataset.scene;
+    if (action === 'open') openSceneDialog(state.selected);
+    else setScenesHidden(action === 'hide');
+    return;
+  }
   const infoBtn = e.target.closest('button[data-info]');
   if (infoBtn) {
     showInfo(infoBtn.dataset.info, Number(infoBtn.dataset.vnum), 'loads');
@@ -1450,7 +1513,7 @@ async function goTo(zoneId, vnum, mobId = null, mobTab = null) {
   if (worldOpen) setWorldOpen(false);
   if (!state.zonesById.has(zoneId)) zoneId = state.index[0].id;
   if (state.zone?.id !== zoneId) {
-    const zone = await loadZone(zoneId);
+    const [zone] = await Promise.all([loadZone(zoneId), loadScenes(zoneId)]);
     state.zone = zone;
     buildZone(zone);
     const levels = state.zonesById.get(zoneId)?.levels;
@@ -1660,6 +1723,7 @@ async function init() {
   if (!res.ok) throw new Error('data/zones.json not found. Run tools/convert_world.py first.');
   state.index = await res.json();
   state.zonesById = new Map(state.index.map((z) => [z.id, z]));
+  await loadSceneIndex();
   renderZoneList();
   const { zone, room, mob, info } = readHash();
   if (zone == null && state.zonesById.has(DEFAULT_ZONE)) {
