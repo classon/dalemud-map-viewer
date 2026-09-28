@@ -21,7 +21,7 @@ const SECTOR_COLORS = {
 const cssVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(`--${name}`).trim();
 const COLOR_KEYS = [
   'twoway', 'oneway', 'warp', 'teleport', 'external', 'door', 'secret', 'accent', 'bg', 'grid-major', 'grid-minor',
-  'mob-good', 'mob-neutral', 'mob-evil', 'death', 'peaceful', 'nomagic',
+  'mob-good', 'mob-neutral', 'mob-evil', 'death', 'peaceful', 'nomagic', 'player',
 ];
 const COLORS = {};
 function readColors() {
@@ -136,12 +136,37 @@ const onLevels = (obj, ...ys) => {
 };
 const sharedGeometries = new Set([mobGeometry, aggroGeometry, ...markerEdges]);
 
-const selectionBox = new THREE.LineSegments(
-  new THREE.EdgesGeometry(new THREE.BoxGeometry(CUBE * 1.35, CUBE * 1.35, CUBE * 1.35)),
-  themed(new THREE.LineBasicMaterial(), 'accent'),
+// The selected room ("where you are"): a bright orange outline, a pulsing
+// translucent shell around the cube, and a bobbing arrow above it that grows
+// with camera distance so it stays easy to find when zoomed out.
+const selectionBox = new THREE.Group();
+const selectionShell = new THREE.Mesh(
+  new THREE.BoxGeometry(CUBE * 1.3, CUBE * 1.3, CUBE * 1.3),
+  themed(new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.3, depthWrite: false }), 'player'),
+);
+const selectionBeacon = new THREE.Mesh(
+  new THREE.ConeGeometry(0.28, 0.6, 16).rotateX(Math.PI), // tip pointing down
+  themed(new THREE.MeshBasicMaterial(), 'player'),
+);
+selectionBox.add(
+  new THREE.LineSegments(
+    new THREE.EdgesGeometry(new THREE.BoxGeometry(CUBE * 1.36, CUBE * 1.36, CUBE * 1.36)),
+    themed(new THREE.LineBasicMaterial(), 'player'),
+  ),
+  selectionShell,
+  selectionBeacon,
 );
 selectionBox.visible = false;
 scene.add(selectionBox);
+
+function animateSelection(time) {
+  if (!selectionBox.visible) return;
+  const t = time / 1000;
+  selectionShell.material.opacity = 0.22 + 0.16 * (0.5 + 0.5 * Math.sin(t * 3));
+  const size = THREE.MathUtils.clamp(camera.position.distanceTo(selectionBox.position) / 25, 1, 8);
+  selectionBeacon.scale.setScalar(size);
+  selectionBeacon.position.y = CUBE * 0.9 + 0.3 * size + 0.18 * size * (0.5 + 0.5 * Math.sin(t * 2.5));
+}
 
 const mobSelection = new THREE.LineSegments(
   new THREE.EdgesGeometry(new THREE.BoxGeometry(MOB_SIZE * 3.2, MOB_SIZE * 3.2, MOB_SIZE * 3.2)),
@@ -185,9 +210,10 @@ document.getElementById('compass').addEventListener('click', () => {
   camera.position.set(controls.target.x, camera.position.y, controls.target.z + Math.hypot(offset.x, offset.z));
 });
 
-renderer.setAnimationLoop(() => {
+renderer.setAnimationLoop((time) => {
   controls.update();
   updateCompass();
+  animateSelection(time);
   renderer.render(scene, camera);
 });
 

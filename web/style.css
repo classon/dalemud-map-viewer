@@ -19,6 +19,7 @@
   --death: #c62f3a;
   --peaceful: #4cd18c;
   --nomagic: #38bdf8;
+  --player: #ff8a1f;
   --grid-major: #39404c;
   --grid-minor: #242933;
   --title-shadow: 0 1px 3px #000;
@@ -47,6 +48,7 @@
   --death: #c42836;
   --peaceful: #169b55;
   --nomagic: #0284c7;
+  --player: #f26b00;
   --grid-major: #b9c1cd;
   --grid-minor: #d9dee6;
   --title-shadow: 0 1px 2px #fff;
