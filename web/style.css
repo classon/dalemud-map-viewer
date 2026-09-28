@@ -127,8 +127,9 @@ body { background: var(--bg); color: var(--text); font: 14px/1.45 var(--font); }
 .world-labels { position: absolute; inset: 0; overflow: hidden; }
 .world-label {
   position: absolute; left: 0; top: 0; white-space: nowrap; font-size: 11px; color: var(--text);
-  text-shadow: 0 0 3px var(--bg), 0 0 3px var(--bg), 0 0 3px var(--bg); transition: opacity .15s;
+  text-shadow: 0 0 3px var(--bg), 0 0 3px var(--bg), 0 0 3px var(--bg); transition: opacity .25s;
 }
+.world-label.off { opacity: 0; }
 .world-label.hot { font-weight: 600; }
 .world-label.current { color: var(--player); font-weight: 600; }
 .world-label.faded { opacity: .25; }

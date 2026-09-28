@@ -1231,23 +1231,28 @@ function updateWorldLabels() {
     const x = ((labelPos.x + 1) / 2) * w, y = ((1 - labelPos.y) / 2) * h;
     const rect = { l: x - width / 2 - 3, r: x + width / 2 + 3, t: y - 1, b: y + 15 };
     const fits = labelPos.z < 1 && (force || !placed.some((p) => rect.l < p.r && rect.r > p.l && rect.t < p.b && rect.b > p.t));
-    el.style.display = fits ? '' : 'none';
-    if (fits) {
-      el.style.transform = `translate(${x}px, ${y}px) translate(-50%, 0)`;
-      placed.push(rect);
-    }
+    // Fade rather than toggle display, and keep following the sphere while
+    // hidden so a label fades back in at the right spot.
+    el.classList.toggle('off', !fits);
+    el.style.transform = `translate(${x}px, ${y}px) translate(-50%, 0)`;
+    if (fits) placed.push(rect);
+    return fits;
   };
   if (worldGraph.captionLabel) tryPlace(worldGraph.captionLabel, worldGraph.caption, 170, true);
-  const order = [...worldGraph.nodes].sort((a, b) => b.priority - a.priority);
+  // Labels already showing get a bonus (below the hover tiers) so they don't
+  // trade places with their neighbours every frame as the camera moves.
+  const rank = (n) => n.priority + (n.labelShown ? 5e5 : 0);
+  const order = [...worldGraph.nodes].sort((a, b) => rank(b) - rank(a));
   for (const n of order) {
     if (n.labelHidden) {
-      n.label.style.display = 'none';
+      n.label.classList.add('off');
+      n.labelShown = false;
       continue;
     }
     n.labelWidth ??= n.z.name.length * 6.3 + 4;
     labelPos.copy(n.pos);
     labelPos.y -= n.r * 1.15;
-    tryPlace(n.label, labelPos.clone(), n.labelWidth, n.priority >= 3e6);
+    n.labelShown = tryPlace(n.label, labelPos.clone(), n.labelWidth, n.priority >= 3e6);
   }
 }
 
@@ -1264,13 +1269,33 @@ function worldPick(event) {
   return raycaster.intersectObjects(worldGraph.nodes.map((n) => n.mesh), false)[0]?.object.userData.node ?? null;
 }
 
-function worldPointerMove(e) {
-  const node = worldPick(e);
-  renderer.domElement.style.cursor = node ? 'pointer' : '';
-  if (node !== worldHover) {
+// Hover intent: a zone lights up only after the pointer rests on it briefly,
+// and the highlight lingers a moment after leaving, so sweeping across the
+// map doesn't flash the whole graph. Nothing changes while dragging.
+const HOVER_ENTER_MS = 150;
+const HOVER_LEAVE_MS = 350;
+let hoverPending;
+let hoverTimer = null;
+
+function scheduleWorldHover(node) {
+  if (node === hoverPending) return;
+  hoverPending = node;
+  clearTimeout(hoverTimer);
+  if (node === worldHover) return;
+  hoverTimer = setTimeout(() => {
     worldHover = node;
     applyWorldHighlight();
+  }, node ? HOVER_ENTER_MS : HOVER_LEAVE_MS);
+}
+
+function worldPointerMove(e) {
+  if (e.buttons) { // orbiting or panning
+    tooltip.hidden = true;
+    return;
   }
+  const node = worldPick(e);
+  renderer.domElement.style.cursor = node ? 'pointer' : '';
+  scheduleWorldHover(node);
   if (!node) { tooltip.hidden = true; return; }
   tooltip.textContent = `${node.z.name} · ${node.z.roomCount} rooms · ${node.z.mobCount ?? 0} mobs · linked to ${node.edges.length} zone${node.edges.length === 1 ? '' : 's'}`;
   showTooltipAt(e);
